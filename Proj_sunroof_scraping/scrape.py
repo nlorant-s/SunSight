@@ -15,6 +15,9 @@ df_city = pd.read_csv('https://storage.googleapis.com/project-sunroof/csv/latest
 
 # df_electricity = pd.read_excel('https://www.eia.gov/electricity/sales_revenue_price/xls/table5_a.xlsx', engine='xlrd')
 
+df_state.to_csv('Data/state.csv', index=False)  
+df_city.to_csv('Data/city.csv', index=False)  
 
 
 df_state.info()
+df_city.info()
