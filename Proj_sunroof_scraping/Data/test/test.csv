@@ -1,0 +1,18 @@
+,name,center,imageryDate,postalCode,administrativeArea,statisticalArea,regionCode,solarPotential,boundingBox,imageryQuality,imageryProcessedDate
+latitude,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,37.4449739,,94303,CA,6085511100,US,,,HIGH,
+longitude,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,-122.13914659999998,,94303,CA,6085511100,US,,,HIGH,
+year,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,2022.0,94303,CA,6085511100,US,,,HIGH,2023.0
+month,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,8.0,94303,CA,6085511100,US,,,HIGH,8.0
+day,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,14.0,94303,CA,6085511100,US,,,HIGH,4.0
+maxArrayPanelsCount,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,1163,,HIGH,
+maxArrayAreaMeters2,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,1903.5983,,HIGH,
+maxSunshineHoursPerYear,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,1802,,HIGH,
+carbonOffsetFactorKgPerMwh,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,428.9201,,HIGH,
+wholeRoofStats,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,"{'areaMeters2': 2399.3958, 'sunshineQuantiles': [351, 1396, 1474, 1527, 1555, 1596, 1621, 1640, 1664, 1759, 1864], 'groundAreaMeters2': 2279.71}",,HIGH,
+panelCapacityWatts,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,250,,HIGH,
+panelHeightMeters,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,1.65,,HIGH,
+panelWidthMeters,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,0.992,,HIGH,
+panelLifetimeYears,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,20,,HIGH,
+buildingStats,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,"{'areaMeters2': 2533.1233, 'sunshineQuantiles': [348, 1376, 1460, 1519, 1550, 1590, 1618, 1638, 1662, 1756, 1864], 'groundAreaMeters2': 2356.03}",,HIGH,
+sw,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,,"{'latitude': 37.4447234, 'longitude': -122.1394224}",HIGH,
+ne,buildings/ChIJh0CMPQW7j4ARLrRiVvmg6Vs,,,94303,CA,6085511100,US,,"{'latitude': 37.4452242, 'longitude': -122.13872160000001}",HIGH,

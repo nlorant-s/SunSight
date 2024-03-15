@@ -1,4 +1,4 @@
-
+import pandas as pd
 
 def state_conversion():
     us_state_abbrev = {
@@ -54,3 +54,15 @@ def state_conversion():
         'Wyoming': 'WY',
     }
     return us_state_abbrev
+
+def get_building_stats(lat=0,long=0,label='test'):
+    ## DONT PUSH THIS LINK##
+    lat = 37.4450
+    long = -122.1390
+    link = 'https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=' +str(lat)+'&location.longitude='+str(long)+'&requiredQuality=HIGH&key=AIzaSyCZfj2NFVlNY6qxEJaHdSNTOeMr_tuwt2I'
+
+    df = pd.read_json(link).drop('roofSegmentStats').drop('solarPanelConfigs').drop('financialAnalyses').drop('solarPanels').to_csv('Data/test/'+label+".csv")
+
+    print(df)
+
+get_building_stats()
