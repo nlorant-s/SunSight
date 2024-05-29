@@ -9,21 +9,13 @@ from geopy.geocoders import Nominatim # For address to lat/long
 from uszipcode import SearchEngine
 from tqdm import tqdm
 
+from os.path import exists
+import pickle
 
-# BY BUILDING (lat/long) SOLAR DATA
-def get_building_stats(lat=0,long=0,label='test',API_key=''):
-    lat = 37.4450
-    long = -122.1390
-    link = 'https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=' +str(lat)+'&location.longitude='+str(long)+'&requiredQuality=HIGH&key='+str(API_key)
+from urllib.request import urlopen
+import urllib
+import ast
 
-    df = pd.read_json(link).drop('roofSegmentStats').drop('solarPanelConfigs').drop('financialAnalyses').drop('solarPanels').to_csv('Data/test/'+label+".csv")
-
-    print(df)
-
-# with open('../API_keys/Sunroof_API_key.txt', 'r') as file:
-#     sunroof_api_key = file.read().rstrip()
-
-#     get_building_stats(40.7410861, -73.9896298241625, API_key=sunroof_api_key)
 
 # BY ZIP LIST SOLAR DATA
 def get_solar_data_by_zips(zip_codes, save=None):
@@ -37,85 +29,71 @@ def get_solar_data_by_zips(zip_codes, save=None):
     if save is not None:
         df.to_csv(save+".csv", index=False)
 
-
     return df
 
-# ONE ZIP CODE (and census object) TO CENSUS DEMO DATA
-def get_census_info_with_area_code(zip_code, c):
+def get_census_info_by_zip_codes(zip_codes, code_dict):
 
-    # Define Search engine
-    search = SearchEngine()
-
-    # Search zipcode
-    zipcode = search.by_zipcode(zip_code)
-
-    if zipcode is None:
-        return None
-
-    # extract zip code state and county details
-    state_fips = zipcode.state
-
-
-
-    # Including total population (B01003_001E), 
-    # median household income (B19013_001E), 
-    # and % of people below poverty level (B17001_002E)
-    demographic_data = c.acs5.state_zipcode(('B01003_001E', 'B11001_001E', 'B19013_001E', 'B19301_001E', 'B17001_002E', 'B02001_005E', 'B02001_003E' ),  {'for': 'state'.format(state_fips)}, zip_code)
-    # demographic_data = c.acs5.get(('NAME','B01003_001E','B19013_001E', 'B17001_002E'), {'for': 'state_zipcode(fields, state_fips, zip5)'})
-
-    # Convert to pandas DataFrame
-    df = pd.DataFrame(demographic_data)
-    df = df.rename(columns={'B01003_001E': 'Total_Population','B11001_001E':'total_households', 'B19013_001E': 'Median_income','B19301_001E': 'per_capita_income', 'B17001_002E': 'households_below_poverty_line', 'B02001_003E': 'black_households','B02001_003E': 'House_heating_fuel',  'B02001_005E' : 'asian_households'})
-    return df
-
-# LIST OF ZIP CODES TO CENSUS DEMOGRAPHIC INFO
-def get_census_info_by_zip_codes(code_list):
-    
-    # Create a census object using the stored API key
     with open('../API_keys/Census_API_key.txt', 'r') as file:
-        census_api_key = file.read().rstrip()
-    c = Census(census_api_key)
+        census_api_key = str(file.read().rstrip())
 
-    df = get_census_info_with_area_code(code_list[0], c)
-    for code in tqdm(code_list[1:]):
-        new =  get_census_info_with_area_code(code, c)
-        if new is not None:
-            df = pd.concat([df, new])
+    # Queries the ACS5 dataset by URL
+    code_keys = str(code_dict.keys())
+    url = "https://api.census.gov/data/2022/acs/acs5?get="+code_keys +"&for="
+    ZCTA = 'zip code tabulation area'
+    url = url + urllib.parse.quote(ZCTA) + ":*"
+    url = url.replace("dict_keys(", "").replace(")", "").replace("[", "").replace("]", "").replace("'","").replace(" ","")
 
+    # Gets Bytes from the URL, converts to str, removes null elements and then converts to list
+    f = urlopen(url)
+    myfile = f.read().decode("utf-8").replace("null","-1")
+    res = ast.literal_eval(myfile)
+
+    # Converts that list into a DF and then renames the columns
+    df = pd.DataFrame(res[1:],columns=res[0])
+    df = df.rename(columns=code_dict)
+    df = df.rename(columns={'zip code tabulation area':'zcta'})
+    
+    # Culls to only listed zip codes
+    # intersect = set(zip_codes).intersection(df['place'])
+    # print(intersect)
+    # print(len(intersect))
+
+    df['zcta'].to_csv("Data/zips.csv",index=False)
+
+    # df = df[df['place'].isin(zip_codes)]
     return df
 
+# Wrapper for data load calls to check params and save output, currently setup for just census, but intended to load both census and solar
+def get_zip_info(zip_codes, save=None, code_dict=None):
 
-def address_to_lat_long(address, geolocator=Nominatim(user_agent="Cooper Proj")):
-    try:
-        location = geolocator.geocode(address)
-        return (location.latitude, location.longitude)
-    except:
-        return None
+    if code_dict is None:
+        print("bad call to census dataset, no code dictionary")
+        return -1
+    else:
+        census_df = get_census_info_by_zip_codes(zip_codes,code_dict)
 
-# address = "175 5th Avenue NYC"
-# print(address_to_lat_long(address))  # (40.7410861, -73.9896298241625)
-
-def get_zip_info(zip_codes, save=None):
-    census_df = get_census_info_by_zip_codes(zip_codes)
-    # solar_df = get_solar_data_by_zips(zip_codes)
-    # combined = pd.concat([census_df, solar_df], axis=1)
-    # combined['Solar_potential'] = (combined['yearly_sunlight_kwh_kw_threshold_avg'] * combined['number_of_panels_total']) / combined['Total_Population'] 
-
-    if save is not None:
-        census_df.to_csv(save+".csv", index=False)
+        if save is not None:
+            census_df.to_csv(save+".csv", index=False)
 
     return census_df
     # return combined
 
 
-zips = pd.read_csv('Data/new_zips.csv',dtype=str)
-zip_codes = zips['zips'].values
+code_dict = {'B01003_001E': 'Total_Population',
+                    'B11001_001E': 'total_households',
+                    'B19013_001E': 'Median_income',
+                    'B19301_001E': 'per_capita_income',
+                    'B17001_002E': 'households_below_poverty_line', 
+                    'B02001_003E': 'black_population',
+                    'B02001_002E': 'white_population',  
+                    'B02001_005E' : 'asian_population', 
+                    'B02001_004E': 'native_population'}
 
-print(len(zip_codes))
-
-combined_df = get_solar_data_by_zips(zip_codes, save="solar_by_zip")
-
-print(len(combined_df))
+census_df = get_zip_info(zip_codes=None, save="Data/census_by_zip.csv",code_dict=code_dict)
+zips = pd.read_csv('Data/zips.csv',dtype=str)
+zip_codes = zips['zcta'].values
+solar_df = get_solar_data_by_zips(zip_codes)
+print(len(solar_df))
 
 
 
