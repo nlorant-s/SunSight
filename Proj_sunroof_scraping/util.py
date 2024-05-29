@@ -89,7 +89,7 @@ code_dict = {'B01003_001E': 'Total_Population',
                     'B02001_005E' : 'asian_population', 
                     'B02001_004E': 'native_population'}
 
-census_df = get_zip_info(zip_codes=None, save="Data/census_by_zip.csv",code_dict=code_dict)
+census_df = get_zip_info(zip_codes=None, save="Data/census_by_zip",code_dict=code_dict)
 zips = pd.read_csv('Data/zips.csv',dtype=str)
 zip_codes = zips['zcta'].values
 solar_df = get_solar_data_by_zips(zip_codes)
