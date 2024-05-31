@@ -1,90 +1,16 @@
 import pandas as pd
-import csv
 import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
-from os.path import exists
-import json
 import pgeocode
-import geopandas as gpd
-from shapely.geometry import Point
-from geopandas import GeoDataFrame
+# import geopandas as gpd
+# from shapely.geometry import Point
+# from geopandas import GeoDataFrame
 import plotly.graph_objects as go
 from decimal import Decimal
-
-
-# This code is used to combine the Json of solar installation sizes into a total sq footage
-def combine_counts(solar_size_json):
-    counts = []
-    for zip in solar_size_json:
-        count = 0
-        if type(zip) == str:
-            lzip = json.loads(zip)
-            for elem in lzip:
-                count += elem[0] * elem[1]
-        counts.append(count)
-
-    return counts
-
-# Loads Solar data for given zipcodes, also cleans and calculates new values
-def load_solar_dat(zip_codes, load_dir="/Clean_Data/census_zip_usable.csv"):
-
-    # If we have already cleaned data then we load that instead of processing
-    if load_dir is not None and exists(load_dir):
-        return pd.read_csv(load_dir)
-
-    zip_codes = list(map(int, zip_codes))
-    # df = pd.read_csv('solar_zip_usable.csv')
-    df = pd.read_csv('../Proj_sunroof_scraping/Data/solar_by_zip.csv')
-    df = df[df["region_name"].isin(zip_codes)]
-    df = df.drop_duplicates(subset=['region_name'], keep='first')
-    df = df[['region_name','yearly_sunlight_kwh_kw_threshold_avg','number_of_panels_total','install_size_kw_buckets_json','existing_installs_count','percent_covered','carbon_offset_metric_tons']]
-    solar_size_json = df['install_size_kw_buckets_json']
-
-    # Potential solar panels are saved as a json of different sizes, we use combine counts to get a single square-footage number of potential solar panel area
-    counts = combine_counts(solar_size_json.values)
-    df['square_footage'] = counts
-
-    # We have to scale by "percent covered" as that is the percent of the zipcode area that has data, but census dat attempts to cover 100% of population
-    df['number_of_panels_total'] *= (100/ df['percent_covered']) 
-    df['square_footage'] *= (100/ df['percent_covered']) 
-    df['carbon_offset_metric_tons'] *= (100/ df['percent_covered']) 
-    df['existing_installs_count'] *= (100/ df['percent_covered']) 
-
-    # This metric for solar potential is somewhat arbitrary, it is simply the avg amount of solar energy produced if all possibe solar panels were built
-    df['solar_potential'] = df['square_footage'] * df['yearly_sunlight_kwh_kw_threshold_avg']
-    
-    df.to_csv("solar_zip_usable.csv", index=False)
-
-    return df
-
-
-# Loads Cenus data for given zipcodes, also cleans and calculates new values
-def load_census_dat(zip_codes, load_dir="/Clean_Data/solar_zip_usable.csv"):
-
-    # If we have already cleaned data then we load that instead of processing
-    if load_dir is not None and exists(load_dir):
-        return pd.read_csv(load_dir)
-
-    zip_codes = list(map(int, zip_codes))
-    df = pd.read_csv('../Proj_sunroof_scraping/Data/census_by_zip.csv')
-    df = df[df["zcta"].isin(zip_codes)]
-
-    # Removes bad data, should be already removed from the zip.csv, but this to be certain.
-    mask = df['Median_income'] <= 0
-    df = df[~mask]
-
-    # Also removes duplicates (which happen for some reason even when there are no duplicates in zips)
-    df = df.drop_duplicates(subset=['zcta'], keep='first')
-    df = df.sort_values('zcta')
-    df.to_csv("census_zip_usable.csv", index=False)
-
-    return df
 
 def fit_dat_and_plot(x, y, deg, label=""):
 
     # fits an arbitrary degree polynomial and then plots it
-
     if deg == "linear":
         deg = 1
     if deg == "quadratic":
@@ -130,7 +56,18 @@ def scatter_plot(x, y, xlabel="", ylabel="", title=None, fit=None, label="", sho
             plt.title(title)
         plt.show()
 
-def complex_scatter(census_df, solar_df, x, y, xlabel, ylabel, title=None, bins=None):
+def quartile_binning(vals, key):
+
+    q1, q2, q3 = np.quantile(vals, [0.25,0.5,0.75])
+
+    q1_bin = (key, (0, q1), key + " in lower quartile", "blue")
+    q2_bin = (key, (q1, q2), key + " in middle lower quartile", "orange")
+    q3_bin = (key, (q2, q3), key + " in middle upper quartile", "green")
+    q4_bin = (key, (q3, np.max(vals)), key + " in upper quartile", "red")
+
+    return [q1_bin,q2_bin, q3_bin, q4_bin]
+
+def complex_scatter(combined_df, x, y, xlabel, ylabel, fit=[1], title=None, bins=None):
     '''
     Inputs:
         Cenus_df : DataFrame object of all saved census data
@@ -141,17 +78,14 @@ def complex_scatter(census_df, solar_df, x, y, xlabel, ylabel, title=None, bins=
             - key wil denote which col we are binning on, range will determine the range that we will mask the data for
             - label will be a label for plottin, color will be the color for the scatter plot
     '''
-    cenus_keys = census_df.keys()
-    solar_keys = solar_df.keys()
+    keys = combined_df.keys()
     for (key, range, label, color) in bins:
-        print(key)
         low, high = range
-        if key in cenus_keys:
-            mask = (low <= census_df[key]) # & (census_df[key] < high)
-            scatter_plot(x=x[mask], y=y[mask], fit=[1], show=False, label=label, color=color)
-        elif key in solar_keys:
-            mask = (low <= solar_df[key]) and  (solar_df[key] < high)
-            scatter_plot(x=x[mask], y=y[mask], fit=[1], show=False, label=label, color=color)
+        if key in keys:
+            mask1 = (low <= combined_df[key]) 
+            df = combined_df[mask1] 
+            mask2 = (df[key] < high)
+            scatter_plot(x=x[mask1][mask2], y=y[mask1][mask2], fit=fit, show=False, label=label, color=color)
         else:
             print("Key error in Complex Scatter on key:", key, " -- not a valid key for census or solar, skipping")
         
@@ -163,9 +97,6 @@ def complex_scatter(census_df, solar_df, x, y, xlabel, ylabel, title=None, bins=
     else:
         plt.title(title)
     plt.show()
-
-
-
 
 # Creates a US map plot of the dat, edf should be provided, but if it isn't then it will be created as necessary using the zipcodes provided
 def geo_plot(dat, color_scale, title, edf=None, zipcodes=None):
@@ -212,57 +143,35 @@ def geo_plot(dat, color_scale, title, edf=None, zipcodes=None):
         )
     fig.show()
 
-def get_clean_zips():
-    if exists("zips_usable.csv"):
-        zips = pd.read_csv('zips_usable.csv',dtype=str) 
-        zips = zips.drop_duplicates(subset=['zcta'], keep='first')
-        return zips['zcta'].values
-    else:
-        zips = pd.read_csv('../Proj_sunroof_scraping/Data/zips.csv',dtype=str) 
-        zips = zips.drop_duplicates(subset=['zcta'], keep='first')
-        zip_codes = zips['zcta'].values
-        solar_df = load_solar_dat(zip_codes)
-        census_df = load_census_dat(zip_codes)
+def plot_state_stats(stats_df, key, sort_by='mean'):
 
-        # Remove all zips not in solar data
-        z_temp = zips[zips['zcta'].isin( solar_df['region_name'].astype(str).str.zfill(5))]
-        # Remove all zips not in census data (including median income outliers)
-        z_temp2 = z_temp[z_temp['zcta'].isin(census_df['zcta'].astype(str).str.zfill(5))]
+    stats_df = stats_df.sort_values(sort_by)
+    stats_df = pd.concat([stats_df[:5], stats_df[-5:]])
 
-        # Save this new zip list
-        z_temp2.to_csv("zips_usable.csv", index=False)
+    barWidth = 0.2
 
-        return z_temp2['zcta'].values
+    br1 = np.arange(len(stats_df))
+    br2 = [x + barWidth for x in br1] 
+    br3 = [x + barWidth for x in br2] 
 
-# Loads both the census and solar data across all zips and returns both dfs, it is necessary to have already created the solar_by_zip and census_by_zip data under the Data folder though
-def load_data():
-    print("Loading Data")
-    # Loads Zip Codes from Data Folder
-    # zips = pd.read_csv('../Proj_sunroof_scraping/Data/zips.csv',dtype=str) 
-    # zips = zips.drop_duplicates(subset=['zcta'], keep='first')
-    # zip_codes = zips['zcta'].values
+    plt.bar(br1, stats_df['mean'], color ='r', width = barWidth, edgecolor ='grey', label ='mean') 
+    plt.bar(br2, stats_df['std'], color ='g', width = barWidth, edgecolor ='grey', label ='std') 
+    plt.bar(br3, stats_df['median'], color ='b', width = barWidth, edgecolor ='grey', label ='median') 
 
-    zip_codes = get_clean_zips() 
+    plt.yscale('log')
+    plt.xlabel("states")
+    plt.ylabel(key)
 
-    print("number of zip codes:", len(zip_codes))
-    solar_df = load_solar_dat(zip_codes)
-    print("number of zip codes with solar data:", len(solar_df))
-    census_df = load_census_dat(zip_codes)
-    print("number of zip codes with census data:", len(census_df))
+    plt.xticks([r + barWidth for r in range(len(stats_df))], stats_df['state_name'])
 
-    solar_df['solar_potential_per_capita'] = solar_df['solar_potential'] / census_df['Total_Population']
-    solar_df = solar_df.sort_values('region_name')
-    solar_df.to_csv("solar_zip_usable.csv", index=False)
+    title_add = ""
+    if key in ['solar_utilization', 'carbon_offset_metric_tons','existing_install_count']:
+        title_add = " per capita"
 
-    nomi = pgeocode.Nominatim('us')
 
-    edf = pd.DataFrame()
-    edf['Latitude'] = (nomi.query_postal_code(zip_codes).latitude)
-    edf['Longitude'] = (nomi.query_postal_code(zip_codes).longitude)
-    edf['zip_code'] = zip_codes
-
-    return zip_codes, solar_df, census_df, edf
-
+    plt.title("States sorted by "+ sort_by +" of "+ key+ title_add +" -- (bottom and top 5)")
+    plt.legend()
+    plt.show()
 
 
 
