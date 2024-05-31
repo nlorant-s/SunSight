@@ -21,10 +21,15 @@ import ast
 def get_solar_data_by_zips(zip_codes, save=None):
 
     zip_codes = list(map(int, zip_codes))
-    df = pd.read_csv('Data/solar_by_zip.csv')
+    df = pd.read_csv('Data/solar_by_zip.csv',dtype=str)
+
+    print(len(df['region_name']))
+    print(df['region_name'][0])
+    print(df['region_name'][0])
+
 
     df = df[df['region_name'].isin(zip_codes)]
-    df = df[['yearly_sunlight_kwh_kw_threshold_avg','number_of_panels_total',]]
+    df = df[['yearly_sunlight_kwh_kw_threshold_avg','number_of_panels_total','region_name']]
 
     if save is not None:
         df.to_csv(save+".csv", index=False)
@@ -79,6 +84,8 @@ def get_zip_info(zip_codes, save=None, code_dict=None):
     # return combined
 
 
+# Define which codes to use and what they are here, find the full instructions for these codes here:
+# https://www.census.gov/programs-surveys/acs/technical-documentation/code-lists.html
 code_dict = {'B01003_001E': 'Total_Population',
                     'B11001_001E': 'total_households',
                     'B19013_001E': 'Median_income',
@@ -92,8 +99,13 @@ code_dict = {'B01003_001E': 'Total_Population',
 census_df = get_zip_info(zip_codes=None, save="Data/census_by_zip",code_dict=code_dict)
 zips = pd.read_csv('Data/zips.csv',dtype=str)
 zip_codes = zips['zcta'].values
-solar_df = get_solar_data_by_zips(zip_codes)
-print(len(solar_df))
+solar_df = get_solar_data_by_zips(zip_codes,save="test")
+
+
+zips = zips[zips['zcta'].isin(solar_df['region_name'])]
+# zips.to_csv('Data/zips.csv', index=False)
+
+print(len(zips))
 
 
 
