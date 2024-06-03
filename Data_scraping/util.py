@@ -94,7 +94,7 @@ code_dict = {'B01003_001E': 'Total_Population',
                     'B02001_003E': 'black_population',
                     'B02001_002E': 'white_population',  
                     'B02001_005E' : 'asian_population', 
-                    'B02001_004E': 'native_population'}
+                    'B02001_004E': 'native_population',}
 
 census_df = get_zip_info(zip_codes=None, save="../Data/census_by_zip",code_dict=code_dict)
 zips = pd.read_csv('../Data/zips.csv',dtype=str)

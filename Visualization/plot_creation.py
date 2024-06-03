@@ -63,7 +63,6 @@ combined_df['black_prop'] = black_prop
 # geo_plot(np.log(asian_prop),'rainbow', "Log Asian Population Proportion", pos_df)
 # geo_plot(white_prop,'rainbow', "Log White Population Proportion", pos_df)
 # geo_plot(np.log(black_prop),'rainbow', "Log Black Population Proportion", pos_df)
-# geo_plot(combined_df['carbon_offset_metric_tons'] ,'rainbow', "Carbon offset", pos_df)
 # geo_plot(np.log((combined_df['carbon_offset_metric_tons']/ combined_df['Total_Population'].values) + 0.001) ,'rainbow', "Log Carbon offset per capita", pos_df)
 # geo_plot(combined_df['percent_covered'] ,'rainbow', "Carbon offset", pos_df)
 # geo_plot(combined_df['existing_installs_count'] ,'rainbow', "Existing Install count", pos_df)
@@ -76,18 +75,30 @@ combined_df['black_prop'] = black_prop
 #     for y, yname in Ys:
 #         scatter_plot(x, y, xlabel=xname, ylabel=yname, fit=[1,5,10])
 
-for key in ['solar_utilization', 'carbon_offset_metric_tons', 'Median_income']:
-    state_stats = stats_for_states(combined_df, key)
-    plot_state_stats(state_stats, key)
+# for key in ['solar_utilization', 'carbon_offset_metric_tons', 'Median_income']:
+#     state_stats = stats_for_states(combined_df, key)
+#     plot_state_stats(state_stats, key)
 
+
+
+# Example Geo Plot (map of us)
+geo_plot(combined_df['carbon_offset_metric_tons'] ,'rainbow', "Carbon offset", pos_df)
+
+# Scatter Plot exmple
+scatter_plot(combined_df['asian_population']/ combined_df['Total_Population'], combined_df['carbon_offset_metric_tons']/ combined_df['Total_Population'], xlabel="Asian Proportion of population", ylabel="Carbon offset per capita (metric tons)", fit=[1,5,10])
+
+
+# Complex scatter plot example with separation for total pop and racial proportions separated by quartiles:
+# This section just sets up the bins for each
 pop_bins_quartile = quartile_binning(combined_df['Total_Population'].values, 'Total_Population')
 white_prop_bins_quartile = quartile_binning(combined_df['white_prop'].values, 'white_prop')
 asain_prop_bins_quartile = quartile_binning(combined_df['asian_prop'].values, 'asian_prop')
 black_prop_bins_quartile = quartile_binning(combined_df['black_prop'].values, 'black_prop')
 
+# Because we want to run over each one of these binnings we concat them
 bins_list = [pop_bins_quartile, white_prop_bins_quartile, asain_prop_bins_quartile, black_prop_bins_quartile]
-bins_list = []
 
+# Then run them together (fit here is 1 giving a linear fit)
 for bins in bins_list:
-    complex_scatter(combined_df=combined_df, x=combined_df['Median_income'].values, y=np.log(combined_df['carbon_offset_metric_tons'].values/combined_df['Total_Population'] + 1), xlabel="Median Income", ylabel="Log Carbon Offset (metric tons) per capita", title=None, bins= bins, fit=[1])
-    complex_scatter(combined_df=combined_df, x=combined_df['Median_income'].values, y=np.log(combined_df['solar_utilization'].values/combined_df['Total_Population'] +1), xlabel="Median Income", ylabel="Log Log Solar Utilization per capita", title=None, bins=bins, fit=[1])
+    complex_scatter(combined_df=combined_df, x=combined_df['households_below_poverty_line'].values, y=np.log(combined_df['carbon_offset_metric_tons'].values/combined_df['Total_Population'] + 1), xlabel="Percent below pverty line", ylabel="Log Carbon Offset (metric tons) per capita", title=None, bins= bins, fit=[1])
+    complex_scatter(combined_df=combined_df, x=combined_df['households_below_poverty_line'].values, y=np.log(combined_df['solar_utilization'].values/combined_df['Total_Population'] +1), xlabel="Percent below pverty line", ylabel="Log Log Solar Utilization per capita", title=None, bins=bins, fit=[1])
