@@ -29,7 +29,7 @@ def load_solar_dat(zip_codes, load_dir="Clean_Data/solar_zip_usable.csv"):
     df = pd.read_csv('../Data/solar_by_zip.csv')
     df = df[df["region_name"].isin(zip_codes)]
     df = df.drop_duplicates(subset=['region_name'], keep='first')
-    df = df[['region_name','state_name','yearly_sunlight_kwh_kw_threshold_avg','number_of_panels_total','install_size_kw_buckets_json','existing_installs_count','percent_covered','carbon_offset_metric_tons','count_qualified']]
+    df = df[['region_name','state_name','yearly_sunlight_kwh_kw_threshold_avg','existing_installs_count','percent_covered','carbon_offset_metric_tons','count_qualified','number_of_panels_total','install_size_kw_buckets_json']]
     solar_size_json = df['install_size_kw_buckets_json']
 
     # Potential solar panels are saved as a json of different sizes, we use combine counts to get a single square-footage number of potential solar panel area
@@ -55,8 +55,9 @@ def stats_by_state(df, key, state):
     does this only for rows from the given state
     '''
 
+    df = df.dropna(axis=0)
     df = df[df['state_name'] == state] 
-    df = df[df[key].notna()]
+    # df = df[df[key].notna()]
     vals = df[key].values 
     if key in ['solar_utilization', 'carbon_offset_metric_tons','existing_install_count']:
         vals /= df['Total_Population']
@@ -109,6 +110,54 @@ def load_census_dat(zip_codes, load_dir="Clean_Data/census_zip_usable.csv"):
     df.to_csv("Clean_Data/census_zip_usable.csv", index=False)
 
     return df
+
+def load_state_energy_dat(keys= ['Clean', 'Bioenergy', 'Coal','Gas','Fossil','Solar','Hydro','Nuclear','Total Generation'], load=True):
+
+    if exists("Clean_Data/state_energy_usable.csv") and load:
+        df = pd.read_csv('Clean_Data/state_energy_usable.csv') 
+        return df
+    
+    df = pd.read_csv('../Data/energy_stats_by_state.csv') 
+    solar_data = df[['State', 'Variable', 'Value', 'Category']]
+
+    # Mask out Puerto Rico (not enough other data)
+    mask = solar_data['State'].isin(["Puerto Rico"])
+    df = solar_data[~mask]
+
+    # This can change but for now we only care about generation
+    mask2 = df['Category'] == 'Electricity generation'
+    df = df[mask2]
+    state_list = df['State'].unique()
+
+    # Types of energy generation that we will load
+    energy_list = keys 
+
+    new_df_dict = {'State' : state_list}
+    new_df = pd.DataFrame()
+
+    # This all reformats the data to have only a single row per state
+    for state in state_list:
+        mask = df['State'] == state
+        temp_df = df[mask]
+
+        for var in energy_list:
+            if var not in new_df_dict.keys():
+                new_df_dict[var] = []
+
+            if var not in temp_df['Variable'].values:
+                new_df_dict[var].append(0)
+            else:
+                mask_var = temp_df['Variable'] == var
+                temp2_df = temp_df[mask_var]
+                val = temp2_df["Value"].values[0]
+                new_df_dict[var].append(val)
+
+    for key in new_df_dict.keys():
+        new_df[key] = new_df_dict[key]
+
+    new_df.to_csv("Clean_Data/state_energy_usable.csv", index=False)
+
+    return new_df
 
 def get_clean_zips():
     if exists("Clean_Data/zips_usable.csv"):

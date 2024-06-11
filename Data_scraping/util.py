@@ -10,7 +10,6 @@ from uszipcode import SearchEngine
 from tqdm import tqdm
 
 from os.path import exists
-import pickle
 
 from urllib.request import urlopen
 import urllib
