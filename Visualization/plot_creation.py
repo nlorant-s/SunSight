@@ -67,15 +67,6 @@ combined_df['asian_prop'] = asian_prop
 combined_df['white_prop'] = white_prop 
 combined_df['black_prop'] = black_prop
 
-
-# keys= ['Solar', 'Bioenergy', 'Coal','Gas','Hydro','Nuclear','Wind', 'Other Renewables', 'Other Fossil', 'Total Generation']
-# state_energy_df = load_state_energy_dat(keys=keys, load=False)
-# energy_gen_bar_plot(state_energy_df,states=None, keys=keys,prop=True, sort_by="Solar")
-
-# keys =  ['Clean','Fossil','Total Generation']
-# state_energy_df = load_state_energy_dat(keys=keys, load=False)
-# energy_gen_bar_plot(state_energy_df,states=['Texas', 'California', 'Mississippi','Vermont', 'US Total'], keys=keys,prop=True, sort_by="Clean")
-
 # log_solar_pot = np.log((solar_df['solar_potential_per_capita'].values + 0.001))
 # log_solar_util = np.log((solar_df['solar_potential_per_capita'].values * solar_df['existing_installs_count']) + 0.001)
 
@@ -98,18 +89,58 @@ combined_df['black_prop'] = black_prop
 #         scatter_plot(x, y, xlabel=xname, ylabel=yname, fit=[1,5,10])
 
 # for key in ['carbon_offset_metric_tons_per_panel', 'Median_income', 'solar_potential_per_capita', 'solar_utilization', 'panel_utilization']:
-# for key in ['carbon_offset_metric_tons_per_panel', 'carbon_offset_metric_tons']:
-#     state_stats = stats_for_states(combined_df, key)
-#     plot_state_stats(state_stats, states=['Delaware', 'California', 'Texas', 'Vermont', 'Mississippi'], key=key, sort_by='mean')
-
-
 
 # # Example Geo Plot (map of us)
 # geo_plot(combined_df['carbon_offset_metric_tons'] ,'rainbow', "Carbon offset", pos_df)
 # geo_plot(np.log(combined_df['solar_potential_per_capita']) ,'rainbow', "Log Solar potential per capita", pos_df)
 
+#### MAIN PLOTS FOR PAPER ############
+
+##### INTRO PLOTS #########
+
+# Demonstrates there is an issue of panel locations
+scatter_plot(x=combined_df['carbon_offset_metric_tons'], y=combined_df['existing_installs_count'], xlabel="Potential carbon offset", ylabel="Existing Panel Count", title=None, fit=[5], log=False, color="red")
+
+# Shows where we should put panels
+# geo_plot(np.log(combined_df['carbon_offset_metric_tons_per_capita']) ,'rainbow', "Carbon offset Per Capita", pos_df)
+
+#######################################
+
+##### EXEMPLAR STATE CHOOSING #######
+
+# Exemplar states carbon offset to demo why we picked them
+for key in ['carbon_offset_metric_tons_per_panel', 'carbon_offset_metric_tons']:
+    state_stats = stats_for_states(combined_df, key)
+    plot_state_stats(state_stats, states=None, key=key, sort_by='mean')
+
+state_energy_df = load_state_energy_dat(keys=['Clean','Fossil','Total Generation'], load=False)
+energy_gen_bar_plot(state_energy_df,states=None, keys=['Clean','Fossil','Total Generation'],prop=True, sort_by="Clean")
+
+state_energy_df = load_state_energy_dat(keys=['Solar', 'Bioenergy', 'Coal','Gas','Hydro','Nuclear','Wind', 'Other Renewables', 'Other Fossil', 'Total Generation'], load=False)
+energy_gen_bar_plot(state_energy_df,states=None, keys=['Solar', 'Bioenergy', 'Coal','Gas','Hydro','Nuclear','Wind', 'Other Renewables', 'Other Fossil', 'Total Generation'],prop=True, sort_by="Solar")
+
+exemplar_states = ['Texas', 'California', 'Mississippi', 'Delaware', 'Massachusetts', 'US Total']
+
+##################################################
+
+
+# Exemplar states carbon offset to demo why we picked them
+for key in ['carbon_offset_metric_tons_per_panel', 'carbon_offset_metric_tons']:
+    state_stats = stats_for_states(combined_df, key)
+    plot_state_stats(state_stats, states=exemplar_states, key=key, sort_by='mean')
+
+# Supporting plots (shows energy generation Splits)
+state_energy_df = load_state_energy_dat(keys=['Clean','Fossil','Total Generation'], load=False)
+energy_gen_bar_plot(state_energy_df,states=exemplar_states, keys=['Clean','Fossil','Total Generation'],prop=True, sort_by="Clean")
+
+state_energy_df = load_state_energy_dat(keys=['Solar', 'Bioenergy', 'Coal','Gas','Hydro','Nuclear','Wind', 'Other Renewables', 'Other Fossil', 'Total Generation'], load=False)
+energy_gen_bar_plot(state_energy_df,states=exemplar_states, keys=['Solar', 'Bioenergy', 'Coal','Gas','Hydro','Nuclear','Wind', 'Other Renewables', 'Other Fossil', 'Total Generation'],prop=True, sort_by="Solar")
+
+
+################# END OF VERY IMPORTANT PLOTS ######################################################3
+
 # Scatter Plot exmple
-scatter_plot(x=combined_df['carbon_offset_metric_tons'], y=combined_df['existing_installs_count'], xlabel="Log Potential carbon offset per capita", ylabel="panel utilization", title=None, fit=[5], log=False)
+
 # scatter_plot(x=combined_df['households_below_poverty_line'].values, y=np.log(combined_df['panel_utilization']), xlabel="Percent below poverty line", ylabel="panel utilization", title=None,fit=[1])
 # scatter_plot(x=combined_df['black_prop'], y=combined_df['Median_income'], xlabel="Black proportion of pop", ylabel='Median Income', fit=[1])
 
@@ -132,6 +163,6 @@ bins_list = [pop_bins_quartile, white_prop_bins_quartile, asain_prop_bins_quarti
 
 # Then run them together (fit here is 1 giving a linear fit)
 # for bins in bins_list:
-#     complex_scatter(combined_df=combined_df, x=np.log(combined_df['carbon_offset_metric_tons_per_capita']), y=np.log(combined_df['panel_utilization']), xlabel="Potential carbon offset per capita", ylabel="panel utilization", title=None, bins=bins, fit=[1])
+#     complex_scatter(combined_df=combined_df, x=combined_df['carbon_offset_metric_tons'], y=combined_df['existing_installs_count'], xlabel="Potential carbon offset (Metric Tons)", ylabel="Existing Installed Panels", title=None, bins=bins, fit=[5])
 #     complex_scatter(combined_df=combined_df, x=combined_df['households_below_poverty_line'].values, y=np.log(combined_df['panel_utilization']), xlabel="Percent below poverty line", ylabel="log panel utilization", title=None, bins= bins, fit=[1])
 #     # complex_scatter(combined_df=combined_df, x=combined_df['households_below_poverty_line'].values, y=np.log(combined_df['solar_utilization'].values/combined_df['Total_Population'] +1), xlabel="Percent below pverty line", ylabel="Log Log Solar Utilization per capita", title=None, bins=bins, fit=[1])
