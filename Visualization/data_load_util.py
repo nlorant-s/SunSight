@@ -118,7 +118,7 @@ def load_state_energy_dat(keys= ['Clean', 'Bioenergy', 'Coal','Gas','Fossil','So
         return df
     
     df = pd.read_csv('../Data/energy_stats_by_state.csv') 
-    solar_data = df[['State', 'Variable', 'Value', 'Category']]
+    solar_data = df[['State', 'State code', 'Variable', 'Value', 'Category']]
 
     # Mask out Puerto Rico (not enough other data)
     mask = solar_data['State'].isin(["Puerto Rico"])
@@ -128,11 +128,12 @@ def load_state_energy_dat(keys= ['Clean', 'Bioenergy', 'Coal','Gas','Fossil','So
     mask2 = df['Category'] == 'Electricity generation'
     df = df[mask2]
     state_list = df['State'].unique()
+    state_code_list = df['State code'].unique()
 
     # Types of energy generation that we will load
     energy_list = keys 
 
-    new_df_dict = {'State' : state_list}
+    new_df_dict = {'State' : state_list, "State code" : state_code_list}
     new_df = pd.DataFrame()
 
     # This all reformats the data to have only a single row per state
@@ -154,6 +155,9 @@ def load_state_energy_dat(keys= ['Clean', 'Bioenergy', 'Coal','Gas','Fossil','So
 
     for key in new_df_dict.keys():
         new_df[key] = new_df_dict[key]
+    
+    for key in keys:
+        new_df[key+'_prop'] = new_df[key] / new_df['Total Generation']
 
     new_df.to_csv("Clean_Data/state_energy_usable.csv", index=False)
 

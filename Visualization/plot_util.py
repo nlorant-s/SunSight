@@ -5,6 +5,7 @@ import pgeocode
 import plotly.graph_objects as go
 from decimal import Decimal
 import seaborn as sns
+import folium as fl
 
 def fit_dat_and_plot(x, y, deg, label="", label_plot=False, log=False):
 
@@ -154,23 +155,19 @@ def geo_plot(dat, color_scale, title, edf=None, zipcodes=None):
         )
     fig.show()
 
-def energy_gen_bar_plot(energy_gen_df, states=['Texas', 'Massachusetts', "California", 'New York', "US Total"], keys=['Clean', 'Bioenergy', 'Coal','Gas','Fossil','Solar','Hydro','Nuclear'], sort_by="Coal" ,prop=False,stack=False):
+def energy_gen_bar_plot(energy_gen_df, states=['Texas', 'Massachusetts', "California", 'New York', "US Total"], keys=['Clean', 'Bioenergy', 'Coal','Gas','Fossil','Solar','Hydro','Nuclear'], sort_by="Coal",stack=True):
 
     if states is not None:
         # Removes all states besides those in the 'states' list
         energy_gen_df = energy_gen_df[energy_gen_df['State'].isin(states)]
-
-    if prop:
-        for key in keys:
-            energy_gen_df[key] /= energy_gen_df['Total Generation']
         
     # Drop Total Generation so it doesn't plot
-    energy_gen_df = energy_gen_df.drop('Total Generation',axis=1)
+    df =  energy_gen_df[keys + ['State']]
 
-    energy_gen_df = energy_gen_df.sort_values(sort_by)
+    df = df.sort_values(sort_by)
 
     if states is None:
-        energy_gen_df = pd.concat([energy_gen_df[:10], energy_gen_df[-10:]])
+        df = pd.concat([df[:10], df[-10:]])
 
     # sns.barplot(data=energy_gen_df,x= 'State')
 
@@ -178,11 +175,26 @@ def energy_gen_bar_plot(energy_gen_df, states=['Texas', 'Massachusetts', "Califo
     sns.set(style='white')
 
     #create stacked bar chart
-    energy_gen_df.set_index('State').plot(kind='bar', stacked=True)
+    df.set_index('State').plot(kind='bar', stacked=stack)
 
     plt.ylabel("Proportion of energy generation")
     plt.title("Energy Generation Proportions by state")
     plt.show()
+
+def plot_state_map(stats_df, key):
+
+    url = (
+        "https://raw.githubusercontent.com/python-visualization/folium/main/examples/data"
+    )
+    state_geo = f"{url}/us-states.json"
+
+    m = fl.Map([43, -100], zoom_start=4)
+
+    fl.Choropleth(geo_data=state_geo, data=stats_df,
+    columns=['State code', key],key_on='feature.id',fill_color='BuPu',fill_opacity=0.7,line_opacity=.1,legend_name="State energy usage coal",).add_to(m)
+
+    m.show_in_browser()
+
 
 def plot_state_stats(stats_df, key, states=None, sort_by='mean'):
 
