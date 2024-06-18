@@ -35,11 +35,11 @@ combined_df = pd.concat([solar_df, census_df, pos_df], axis=1)
 print("Plotting")
 
 # Remove outliers for carbon offset (4 outliers in this case)
-mask = combined_df['carbon_offset_metric_tons'] < 100 * ( combined_df['Total_Population'])
+mask = combined_df['carbon_offset_metric_tons'] < 50 * ( combined_df['Total_Population'])
 combined_df = combined_df[mask]
 
 # Removing outliers for existing install counts (~90)
-mask = combined_df['existing_installs_count'] < 10000
+mask = combined_df['existing_installs_count'] < 2000
 combined_df = combined_df[mask]
 
 # Removing outliers for existing install counts (~90)
@@ -99,10 +99,12 @@ combined_df['black_prop'] = black_prop
 ##### INTRO PLOTS #########
 
 # Demonstrates there is an issue of panel locations
-# scatter_plot(x=combined_df['carbon_offset_metric_tons'], y=combined_df['existing_installs_count'], xlabel="Potential carbon offset", ylabel="Existing Panel Count", title=None, fit=[5], log=False, color="red")
+# states = ['California']
+# combined_df = combined_df[combined_df['state_name'].isin(states)]
+scatter_plot(x=combined_df['carbon_offset_metric_tons'], y=combined_df['existing_installs_count'], xlabel="Potential carbon offset", ylabel="Existing Panel Count", title=None, fit=[4], log=False, color="red")
 
 # Shows where we should put panels
-# geo_plot(np.log(combined_df['carbon_offset_metric_tons_per_capita']) ,'rainbow', "Carbon offset Per Capita", pos_df)
+# geo_plot(np.log(combined_df['carbon_offset_metric_tons'] * combined_df['existing_installs_count']) ,'rainbow', "Carbon offset Per Capita", pos_df)
 
 #######################################
 
@@ -114,27 +116,29 @@ combined_df['black_prop'] = black_prop
 #     plot_state_stats(state_stats, states=None, key=key, sort_by='mean')
 
 state_energy_df = load_state_energy_dat(keys=['Clean','Fossil','Solar', 'Bioenergy', 'Coal','Gas','Hydro','Nuclear','Wind', 'Other Renewables', 'Other Fossil', 'Total Generation'], load=False)
-energy_gen_bar_plot(state_energy_df,states=None, keys=['Clean_prop','Fossil_prop'], sort_by="Clean_prop")
+# energy_gen_bar_plot(state_energy_df,states=None, keys=['Clean_prop','Fossil_prop'], sort_by="Clean_prop")
 
-# state_energy_df = load_state_energy_dat(keys=['Solar', 'Bioenergy', 'Coal','Gas','Hydro','Nuclear','Wind', 'Other Renewables', 'Other Fossil', 'Total Generation'], load=False)
-energy_gen_bar_plot(state_energy_df,states=None, keys=['Solar_prop', 'Bioenergy_prop', 'Coal_prop','Gas_prop','Hydro_prop','Nuclear_prop','Wind_prop', 'Other Renewables_prop', 'Other Fossil_prop'], sort_by="Solar_prop")
+# # state_energy_df = load_state_energy_dat(keys=['Solar', 'Bioenergy', 'Coal','Gas','Hydro','Nuclear','Wind', 'Other Renewables', 'Other Fossil', 'Total Generation'], load=False)
+# energy_gen_bar_plot(state_energy_df,states=None, keys=['Solar_prop', 'Bioenergy_prop', 'Coal_prop','Gas_prop','Hydro_prop','Nuclear_prop','Wind_prop', 'Other Renewables_prop', 'Other Fossil_prop'], sort_by="Solar_prop")
 
 exemplar_states = ['Texas', 'California', 'Mississippi', 'Delaware', 'Massachusetts', 'US Total']
+exemplar_states = ['California', 'Florida']
 
 ##################################################
 
 
 # Exemplar states carbon offset to demo why we picked them
-# for key in ['carbon_offset_metric_tons_per_panel', 'carbon_offset_metric_tons']:
-#     state_stats = stats_for_states(combined_df, key)
+# for key in ['carbon_offset_metric_tons', 'existing_installs_count']:
+#     state_stats = pd.concat([stats_for_states(combined_df, key),state_energy_df['State code']])
 #     plot_state_stats(state_stats, states=exemplar_states, key=key, sort_by='mean')
 
-plot_state_map(state_energy_df, key='Fossil_prop')
-plot_state_map(state_energy_df, key='Solar_prop')
+# plot_state_map(state_energy_df, key='Fossil_prop')
+# plot_state_map(state_energy_df, key='Clean_prop')
+# plot_state_map(state_energy_df, key='Solar_prop')
 
 # Supporting plots (shows energy generation Splits)
-energy_gen_bar_plot(state_energy_df,states=exemplar_states, keys=['Clean_prop','Fossil_prop'], sort_by="Clean_prop")
-energy_gen_bar_plot(state_energy_df,states=exemplar_states, keys=['Solar_prop', 'Bioenergy_prop', 'Coal_prop','Gas_prop','Hydro_prop','Nuclear_prop','Wind_prop', 'Other Renewables_prop', 'Other Fossil_prop'], sort_by="Solar_prop")
+# energy_gen_bar_plot(state_energy_df,states=exemplar_states, keys=['Clean_prop','Fossil_prop'], sort_by="Clean_prop")
+# energy_gen_bar_plot(state_energy_df,states=exemplar_states, keys=['Solar_prop', 'Bioenergy_prop', 'Coal_prop','Gas_prop','Hydro_prop','Nuclear_prop','Wind_prop', 'Other Renewables_prop', 'Other Fossil_prop'], sort_by="Solar_prop")
 
 
 ################# END OF VERY IMPORTANT PLOTS ######################################################3

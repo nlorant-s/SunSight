@@ -4,6 +4,7 @@ import numpy as np
 import json
 import pgeocode
 
+
 # This code is used to combine the Json of solar installation sizes into a total sq footage
 def combine_counts(solar_size_json):
     counts = []
@@ -134,7 +135,7 @@ def load_state_energy_dat(keys= ['Clean', 'Bioenergy', 'Coal','Gas','Fossil','So
     energy_list = keys 
 
     new_df_dict = {'State' : state_list, "State code" : state_code_list}
-    new_df = pd.DataFrame()
+    new_df = pd.DataFrame(new_df_dict)
 
     # This all reformats the data to have only a single row per state
     for state in state_list:

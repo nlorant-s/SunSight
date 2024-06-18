@@ -6,6 +6,8 @@ import plotly.graph_objects as go
 from decimal import Decimal
 import seaborn as sns
 import folium as fl
+import io
+from PIL import Image
 
 def fit_dat_and_plot(x, y, deg, label="", label_plot=False, log=False):
 
@@ -79,7 +81,7 @@ def quartile_binning(vals, key):
 
     return [q1_bin,q2_bin, q3_bin, q4_bin]
 
-def complex_scatter(combined_df, x, y, xlabel, ylabel, fit=[1], title=None, bins=None):
+def complex_scatter(combined_df, x, y, xlabel, ylabel, fit=[1], title=None, bins=None, show=True, states=None):
     '''
     Inputs:
         Cenus_df : DataFrame object of all saved census data
@@ -90,7 +92,10 @@ def complex_scatter(combined_df, x, y, xlabel, ylabel, fit=[1], title=None, bins
             - key wil denote which col we are binning on, range will determine the range that we will mask the data for
             - label will be a label for plottin, color will be the color for the scatter plot
     '''
+
+
     keys = combined_df.keys()
+
     for (key, range, label, color) in bins:
         low, high = range
         if key in keys:
@@ -101,14 +106,15 @@ def complex_scatter(combined_df, x, y, xlabel, ylabel, fit=[1], title=None, bins
         else:
             print("Key error in Complex Scatter on key:", key, " -- not a valid key for census or solar, skipping")
         
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend()
-    if title is None:
-        plt.title(ylabel + " versus " + xlabel)
-    else:
-        plt.title(title)
-    plt.show()
+    if show:
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.legend()
+        if title is None:
+            plt.title(ylabel + " versus " + xlabel)
+        else:
+            plt.title(title)
+        plt.show()
 
 # Creates a US map plot of the dat, edf should be provided, but if it isn't then it will be created as necessary using the zipcodes provided
 def geo_plot(dat, color_scale, title, edf=None, zipcodes=None):
@@ -162,7 +168,7 @@ def energy_gen_bar_plot(energy_gen_df, states=['Texas', 'Massachusetts', "Califo
         energy_gen_df = energy_gen_df[energy_gen_df['State'].isin(states)]
         
     # Drop Total Generation so it doesn't plot
-    df =  energy_gen_df[keys + ['State']]
+    df =  energy_gen_df[keys + ['State'] + ['State code']]
 
     df = df.sort_values(sort_by)
 
@@ -175,7 +181,7 @@ def energy_gen_bar_plot(energy_gen_df, states=['Texas', 'Massachusetts', "Califo
     sns.set(style='white')
 
     #create stacked bar chart
-    df.set_index('State').plot(kind='bar', stacked=stack)
+    df.set_index('State code').plot(kind='bar', stacked=stack)
 
     plt.ylabel("Proportion of energy generation")
     plt.title("Energy Generation Proportions by state")
@@ -191,9 +197,14 @@ def plot_state_map(stats_df, key):
     m = fl.Map([43, -100], zoom_start=4)
 
     fl.Choropleth(geo_data=state_geo, data=stats_df,
-    columns=['State code', key],key_on='feature.id',fill_color='BuPu',fill_opacity=0.7,line_opacity=.1,legend_name="State energy usage coal",).add_to(m)
+    columns=['State code', key],key_on='feature.id',fill_color='BuPu',fill_opacity=0.7,line_opacity=.1,legend_name="Usage of " + key,).add_to(m)
 
-    m.show_in_browser()
+    img_data = m._to_png(5)
+    img = Image.open(io.BytesIO(img_data))
+    img.save("Maps/" + key + '_usgae_by_state.png')
+    img.show()
+
+    # m.show_in_browser()
 
 
 def plot_state_stats(stats_df, key, states=None, sort_by='mean'):
@@ -207,23 +218,10 @@ def plot_state_stats(stats_df, key, states=None, sort_by='mean'):
     if states is None:
         stats_df = pd.concat([stats_df[:5], stats_df[-5:]])
 
-    barWidth = 0.2
-
-    # br1 = np.arange(len(stats_df))
-    # br2 = [x + barWidth for x in br1] 
-    # br3 = [x + barWidth for x in br2] 
-
-    # plt.bar(br1, stats_df['mean'], color ='r', width = barWidth, edgecolor ='grey', label ='mean') 
-    # plt.bar(br2, stats_df['std'], color ='g', width = barWidth, edgecolor ='grey', label ='std') 
-    # plt.bar(br3, stats_df['median'], color ='b', width = barWidth, edgecolor ='grey', label ='median') 
-
     stats_df.set_index('state_name').plot(kind='bar', stacked=False)
 
-    # plt.yscale('log')
     plt.xlabel("states")
     plt.ylabel(key)
-
-    # plt.xticks([r + barWidth for r in range(len(stats_df))], stats_df['state_name'])
 
     title_add = ""
     if key in ['solar_utilization', 'carbon_offset_metric_tons','existing_install_count']:
