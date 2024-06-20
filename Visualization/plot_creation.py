@@ -54,7 +54,7 @@ print("zips after removing outliers:", len(combined_df))
 
 # Current working metric of "solar utilization", should be ~ current carbon offset
 combined_df['solar_utilization'] = (combined_df['existing_installs_count'] / combined_df['number_of_panels_total']) * combined_df['carbon_offset_metric_tons']
-combined_df['panel_utilization'] = (combined_df['existing_installs_count'] / combined_df['total_households'])
+combined_df['panel_utilization'] = (combined_df['existing_installs_count'] / combined_df['number_of_panels_total'])
 
 combined_df['carbon_offset_metric_tons_per_panel'] = (combined_df['carbon_offset_metric_tons'] / combined_df['number_of_panels_total'])
 combined_df['carbon_offset_metric_tons_per_capita'] = combined_df['carbon_offset_metric_tons']/ combined_df['Total_Population']
@@ -91,7 +91,10 @@ combined_df['black_prop'] = black_prop
 # for key in ['carbon_offset_metric_tons_per_panel', 'Median_income', 'solar_potential_per_capita', 'solar_utilization', 'panel_utilization']:
 
 # # Example Geo Plot (map of us)
-# geo_plot(combined_df['carbon_offset_metric_tons'] ,'rainbow', "Carbon offset", pos_df)
+geo_plot(combined_df['carbon_offset_metric_tons'] ,'rainbow', "Carbon offset", pos_df)
+geo_plot(combined_df['existing_installs_count'] ,'rainbow', "Existing Installs", pos_df)
+geo_plot(combined_df['number_of_panels_total'] ,'rainbow', "Panel Total", pos_df)
+geo_plot(combined_df['panel_utilization'] ,'rainbow', "Panel Util", pos_df)
 # geo_plot(np.log(combined_df['solar_potential_per_capita']) ,'rainbow', "Log Solar potential per capita", pos_df)
 
 #### MAIN PLOTS FOR PAPER ############
@@ -122,12 +125,12 @@ state_energy_df = load_state_energy_dat(keys=['Clean','Fossil','Solar', 'Bioener
 # energy_gen_bar_plot(state_energy_df,states=None, keys=['Solar_prop', 'Bioenergy_prop', 'Coal_prop','Gas_prop','Hydro_prop','Nuclear_prop','Wind_prop', 'Other Renewables_prop', 'Other Fossil_prop'], sort_by="Solar_prop")
 
 exemplar_states = ['Texas', 'California', 'Mississippi', 'Delaware', 'Massachusetts', 'US Total']
-exemplar_states = ['California', 'Florida']
+exemplar_states = ['California', 'Florida', 'Vermont', 'Texas']
 
 ##################################################
 
 
-# Exemplar states carbon offset to demo why we picked them
+# # Exemplar states carbon offset to demo why we picked them
 # for key in ['carbon_offset_metric_tons', 'existing_installs_count']:
 #     state_stats = pd.concat([stats_for_states(combined_df, key),state_energy_df['State code']])
 #     plot_state_stats(state_stats, states=exemplar_states, key=key, sort_by='mean')
