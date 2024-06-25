@@ -79,13 +79,17 @@ def stats_for_states(df, key):
     pr_mask = df['state_name'].isin(['Aguadilla', 'Arecibo', 'Dorado', 'Hormigueros', 'Moca', 'Mayagüez', 'Ponce',
     'Canóvanas', 'Corozal', 'San Juan', 'Toa Baja', 'Toa Alta', 'Bayamón', 'Cataño',
     'Guaynabo', 'Trujillo Alto', 'Carolina'])
+
+    # GROSS DUMB code to make rows align for the combination data by state df
     states = df[~pr_mask]['state_name'].unique()
+    states[states == 'District of Columbia'] = 'Washington, D.C.'
+    states = np.sort(states)
+    states[states == 'Washington, D.C.'] = 'District of Columbia'
 
     stats = stats_by_state(df, key, states[0])
 
     for state in states[1:]:
         stats = pd.concat([stats, stats_by_state(df, key, state)])
-
 
     stats = stats[stats['mean'] != 0]
 
@@ -193,29 +197,25 @@ def load_election_data(load=True):
 
     return new_df
 
-def load_state_data(df, energy_keys=['Clean', 'Bioenergy', 'Coal','Gas','Fossil','Solar','Hydro','Nuclear','Total Generation'], stats_keys=["Total_Population","total_households","Median_income","per_capita_income","households_below_poverty_line","black_population","white_population","asian_population","native_population","yearly_sunlight_kwh_kw_threshold_avg", "existing_installs_count", "carbon_offset_metric_tons", "carbon_offset_metric_tons_per_capita"], load=False):
+def load_state_data(df, energy_keys=['Clean', 'Bioenergy', 'Coal','Gas','Fossil','Solar','Hydro','Nuclear','Total Generation'], stats_keys=["Total_Population","total_households","Median_income","per_capita_income","households_below_poverty_line","black_population","white_population","asian_population","native_population", "black_prop","white_prop", "asian_prop","yearly_sunlight_kwh_kw_threshold_avg", "existing_installs_count", "carbon_offset_metric_tons", "carbon_offset_metric_tons_per_capita"], load=False):
     
     if load and exists("Clean_Data/data_by_state.csv"):
         return pd.read_csv("Clean_Data/data_by_state.csv")
     
     election_df = load_election_data().drop('state', axis=1)
     energy_df = load_state_energy_dat(keys=energy_keys, load=False, total=False)
-    print(energy_df)
     stats_df = pd.DataFrame()
 
     for key in stats_keys:
         vals = stats_for_states(df=df, key=key)['mean'].values
         stats_df[key] = vals
-    
 
     combined_state_df = pd.concat([energy_df, election_df, stats_df], axis=1) 
     combined_state_df.to_csv("Clean_Data/data_by_state.csv",index=False)
 
-    print(combined_state_df)
+    combined_state_df = combined_state_df[combined_state_df['State'] != "Washington, D.C."]
 
     return combined_state_df
-
-
 
 def get_clean_zips():
     if exists("Clean_Data/zips_usable.csv"):

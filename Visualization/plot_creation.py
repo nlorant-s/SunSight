@@ -42,18 +42,14 @@ combined_df = combined_df[mask]
 mask = combined_df['existing_installs_count'] < 2000
 combined_df = combined_df[mask]
 
-# Removing outliers for existing install counts (~90)
 mask = combined_df['existing_installs_count'] > 0
 combined_df = combined_df[mask]
 
-# Removing outliers for existing install counts (~90)
 mask = combined_df['count_qualified'] > 0
 combined_df = combined_df[mask]
 
 print("zips after removing outliers:", len(combined_df))
 
-
-print("Plotting")
 # Current working metric of "solar utilization", should be ~ current carbon offset
 combined_df['solar_utilization'] = (combined_df['existing_installs_count'] / combined_df['number_of_panels_total']) * combined_df['carbon_offset_metric_tons']
 combined_df['panel_utilization'] = (combined_df['existing_installs_count'] / combined_df['number_of_panels_total'])
@@ -70,7 +66,11 @@ combined_df['asian_prop'] = asian_prop
 combined_df['white_prop'] = white_prop 
 combined_df['black_prop'] = black_prop
 
+# combined_df.to_csv('Clean_Data/data_by_zip.csv')
+
 state_df = load_state_data(combined_df, load=True)
+
+
 
 # for key in ['carbon_offset_metric_tons_per_panel', 'carbon_offset_metric_tons']:
     # state_stats = stats_for_states(combined_df, key)
@@ -108,12 +108,15 @@ state_df = load_state_data(combined_df, load=True)
 
 #### MAIN PLOTS FOR PAPER ############
 
+print("Plotting")
+
 ##### INTRO PLOTS #########
 
 # Demonstrates there is an issue of panel locations
 # states = ['California']
 # combined_df = combined_df[combined_df['state_name'].isin(states)]
-# scatter_plot(x=combined_df['carbon_offset_metric_tons'], y=combined_df['existing_installs_count'], xlabel="Potential carbon offset", ylabel="Existing Panel Count", title=None, fit=[4], log=False, color="red")
+# scatter_plot(x=np.log(combined_df['carbon_offset_metric_tons']), y=np.log(combined_df['existing_installs_count']), xlabel="Log Potential carbon offset", ylabel="Log Existing Panel Count", title=None, fit=[1,2], log=False, color="red")
+# scatter_plot(x=combined_df['carbon_offset_metric_tons'], y=combined_df['existing_installs_count'], xlabel="Potential carbon offset", ylabel="Existing Panel Count", title=None, fit=[2,4], log=False, color="red")
 
 # Shows where we should put panels
 # geo_plot(np.log(combined_df['carbon_offset_metric_tons'] * combined_df['existing_installs_count']) ,'rainbow', "Carbon offset Per Capita", pos_df)
@@ -148,11 +151,13 @@ exemplar_states = ['Texas', 'California', 'Mississippi', 'Delaware', 'Massachuse
 # plot_state_map(state_df, key='Fossil_prop')
 # plot_state_map(state_df, key='Democrat_prop')
 # plot_state_map(state_df, key='Republican_prop')
-# plot_state_map(state_df, key='Median_income')
+plot_state_map(state_df, key='Median_income') 
+plot_state_map(state_df, key='black_prop')
+plot_state_map(state_df, key='white_prop')  
 # plot_state_map(state_df, key='carbon_offset_metric_tons')
 # plot_state_map(state_df, key='existing_installs_count')
-# plot_state_map(state_energy_df, key='Clean_prop')
-# plot_state_map(state_energy_df, key='Solar_prop')
+# plot_state_map(state_df, key='Clean_prop')
+# plot_state_map(state_df, key='Solar_prop')
 
 # Supporting plots (shows energy generation Splits)
 # energy_gen_bar_plot(state_energy_df,states=exemplar_states, keys=['Clean_prop','Fossil_prop'], sort_by="Clean_prop")
@@ -188,7 +193,7 @@ bins_list = [pop_bins_quartile, white_prop_bins_quartile, asain_prop_bins_quarti
 # complex_scatter(combined_df=combined_df, x=combined_df['black_prop'], y=combined_df['black_prop'], xlabel="Black Prop", ylabel="Black prop", title="Test of quartile binning", bins=black_prop_bins_quartile, fit=[1])
 
 # Then run them together (fit here is 1 giving a linear fit)
-for bins in bins_list:
-    complex_scatter(combined_df=combined_df, x=combined_df['carbon_offset_metric_tons'], y=combined_df['existing_installs_count'], xlabel="Potential carbon offset (Metric Tons)", ylabel="Existing Installed Panels", title=None, bins=bins, fit=[5])
+# for bins in bins_list:
+#     complex_scatter(combined_df=combined_df, x=combined_df['carbon_offset_metric_tons'], y=combined_df['existing_installs_count'], xlabel="Potential carbon offset (Metric Tons)", ylabel="Existing Installed Panels", title=None, bins=bins, fit=[5])
     # complex_scatter(combined_df=combined_df, x=combined_df['households_below_poverty_line'].values, y=np.log(combined_df['panel_utilization']), xlabel="Percent below poverty line", ylabel="log panel utilization", title=None, bins= bins, fit=[1])
     # complex_scatter(combined_df=combined_df, x=combined_df['households_below_poverty_line'].values, y=np.log(combined_df['solar_utilization'].values/combined_df['Total_Population'] +1), xlabel="Percent below pverty line", ylabel="Log Log Solar Utilization per capita", title=None, bins=bins, fit=[1])
