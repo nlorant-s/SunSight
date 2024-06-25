@@ -20,7 +20,7 @@ def fit_dat_and_plot(x, y, deg, label="", label_plot=False, log=False):
     if log:
         y = np.log(y)
 
-    coeff = np.polynomial.polynomial.Polynomial.fit(x, y, deg).coef
+    coeff = np.polynomial.polynomial.Polynomial.fit(x, y, deg).convert().coef
     pred = np.zeros(y.shape)
     poly_str = '%.1E' % Decimal(coeff[0])
     for i in range(deg + 1):
@@ -49,7 +49,7 @@ def scatter_plot(x, y, xlabel="", ylabel="", title=None, fit=None, label="", sho
     if fit is not None:
         dat = dat.sort_values("x")
         max_x = max(dat["x"])
-        dat["x"] /= max_x
+        # dat["x"] /= max_x
         if type(fit) is int:
             fit = [fit]
         for deg in fit:
@@ -197,11 +197,11 @@ def plot_state_map(stats_df, key):
     m = fl.Map([43, -100], zoom_start=4)
 
     fl.Choropleth(geo_data=state_geo, data=stats_df,
-    columns=['State code', key],key_on='feature.id',fill_color='BuPu',fill_opacity=0.7,line_opacity=.1,legend_name="Usage of " + key,).add_to(m)
+    columns=['State code', key],key_on='feature.id',fill_color='BuPu',fill_opacity=0.7,line_opacity=.1,legend_name=key).add_to(m)
 
     img_data = m._to_png(5)
     img = Image.open(io.BytesIO(img_data))
-    img.save("Maps/" + key + '_usgae_by_state.png')
+    img.save("Maps/" + key + '_by_state.png')
     img.show()
 
     # m.show_in_browser()
@@ -218,9 +218,8 @@ def plot_state_stats(stats_df, key, states=None, sort_by='mean'):
     if states is None:
         stats_df = pd.concat([stats_df[:5], stats_df[-5:]])
 
-    stats_df.set_index('state_name').plot(kind='bar', stacked=False)
+    stats_df.set_index('State code').plot(kind='bar', stacked=False)
 
-    plt.xlabel("states")
     plt.ylabel(key)
 
     title_add = ""

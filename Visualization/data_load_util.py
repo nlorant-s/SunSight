@@ -86,6 +86,7 @@ def stats_for_states(df, key):
     for state in states[1:]:
         stats = pd.concat([stats, stats_by_state(df, key, state)])
 
+
     stats = stats[stats['mean'] != 0]
 
     return stats
@@ -112,7 +113,7 @@ def load_census_dat(zip_codes, load_dir="Clean_Data/census_zip_usable.csv"):
 
     return df
 
-def load_state_energy_dat(keys= ['Clean', 'Bioenergy', 'Coal','Gas','Fossil','Solar','Hydro','Nuclear','Total Generation'], load=True):
+def load_state_energy_dat(keys= ['Clean', 'Bioenergy', 'Coal','Gas','Fossil','Solar','Hydro','Nuclear','Total Generation'], load=True, total=True):
 
     if exists("Clean_Data/state_energy_usable.csv") and load:
         df = pd.read_csv('Clean_Data/state_energy_usable.csv') 
@@ -124,6 +125,9 @@ def load_state_energy_dat(keys= ['Clean', 'Bioenergy', 'Coal','Gas','Fossil','So
     # Mask out Puerto Rico (not enough other data)
     mask = solar_data['State'].isin(["Puerto Rico"])
     df = solar_data[~mask]
+
+    if not total:
+        df = df[~(df['State'] == "US Total")]
 
     # This can change but for now we only care about generation
     mask2 = df['Category'] == 'Electricity generation'
@@ -163,6 +167,55 @@ def load_state_energy_dat(keys= ['Clean', 'Bioenergy', 'Coal','Gas','Fossil','So
     new_df.to_csv("Clean_Data/state_energy_usable.csv", index=False)
 
     return new_df
+
+def load_election_data(load=True):
+
+    if load:
+        df = pd.read_csv("Clean_Data/election_by_state.csv")
+        return df 
+
+    df = pd.read_csv('../Data/election_by_state.csv') 
+
+    df = df[df['year'] == 2020]
+    demo_df = df[df['party_simplified'] == "DEMOCRAT"]
+    rep_df = df[df['party_simplified'] == "REPUBLICAN"]
+
+    new_df = pd.DataFrame()
+
+    new_df['state'] = df['state'].unique()
+    new_df['Democrat'] = demo_df["candidatevotes"].values
+    new_df['Republican'] = rep_df["candidatevotes"].values
+    new_df['Total'] = demo_df["totalvotes"].values
+    new_df["Democrat_prop"] = new_df['Democrat']/ new_df['Total']
+    new_df["Republican_prop"] = new_df['Republican']/ new_df['Total']
+
+    new_df.to_csv("Clean_Data/election_by_state.csv", index=False)
+
+    return new_df
+
+def load_state_data(df, energy_keys=['Clean', 'Bioenergy', 'Coal','Gas','Fossil','Solar','Hydro','Nuclear','Total Generation'], stats_keys=["Total_Population","total_households","Median_income","per_capita_income","households_below_poverty_line","black_population","white_population","asian_population","native_population","yearly_sunlight_kwh_kw_threshold_avg", "existing_installs_count", "carbon_offset_metric_tons", "carbon_offset_metric_tons_per_capita"], load=False):
+    
+    if load and exists("Clean_Data/data_by_state.csv"):
+        return pd.read_csv("Clean_Data/data_by_state.csv")
+    
+    election_df = load_election_data().drop('state', axis=1)
+    energy_df = load_state_energy_dat(keys=energy_keys, load=False, total=False)
+    print(energy_df)
+    stats_df = pd.DataFrame()
+
+    for key in stats_keys:
+        vals = stats_for_states(df=df, key=key)['mean'].values
+        stats_df[key] = vals
+    
+
+    combined_state_df = pd.concat([energy_df, election_df, stats_df], axis=1) 
+    combined_state_df.to_csv("Clean_Data/data_by_state.csv",index=False)
+
+    print(combined_state_df)
+
+    return combined_state_df
+
+
 
 def get_clean_zips():
     if exists("Clean_Data/zips_usable.csv"):
