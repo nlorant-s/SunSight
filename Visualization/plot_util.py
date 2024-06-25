@@ -55,9 +55,9 @@ def scatter_plot(x, y, xlabel="", ylabel="", title=None, fit=None, label="", sho
         for deg in fit:
                 fit_dat_and_plot(dat["x"].values, dat["y"].values, deg, label, label_plot=True, log=log)
 
-    xticks = np.arange(0, 1, 0.25)
-    xlabels = [np.round(max_x * x, 2) for x in xticks]
-    plt.xticks(xticks, labels=xlabels)
+    # xticks = np.arange(0, 1, 0.25)
+    # xlabels = [np.round(max_x * x, 2) for x in xticks]
+    # plt.xticks(xticks, labels=xlabels)
     plt.scatter(dat['x'], dat['y'], color=color, alpha=0.1, label=label)
 
     if show:
