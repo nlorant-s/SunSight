@@ -81,7 +81,7 @@ income_bins_quartile = q_binning(combined_df['Median_income'].values, 'Median_in
 # mask = combined_df['existing_installs_count_per_capita'] < 0.06
 # combined_df = combined_df[mask]
 
-state_df = load_state_data(combined_df, load=False)
+state_df = load_state_data(combined_df, load=True)
 
 combined_df = state_df
 
