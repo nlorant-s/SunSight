@@ -35,18 +35,18 @@ combined_df = pd.concat([solar_df, census_df, pos_df], axis=1)
 print("Removing Outliers")
 
 # Remove outliers for carbon offset (4 outliers in this case)
-mask = combined_df['carbon_offset_metric_tons'] < 50 * ( combined_df['Total_Population'])
-combined_df = combined_df[mask]
+# mask = combined_df['carbon_offset_metric_tons'] < 50 * ( combined_df['Total_Population'])
+# combined_df = combined_df[mask]
 
-# Removing outliers for existing install counts (~90)
-mask = combined_df['existing_installs_count'] < 600
-combined_df = combined_df[mask]
+# # Removing outliers for existing install counts (~90)
+# mask = combined_df['existing_installs_count'] < 600
+# combined_df = combined_df[mask]
 
-mask = combined_df['existing_installs_count'] > 0
-combined_df = combined_df[mask]
+# mask = combined_df['existing_installs_count'] > 0
+# combined_df = combined_df[mask]
 
-mask = combined_df['count_qualified'] > 0
-combined_df = combined_df[mask]
+# mask = combined_df['count_qualified'] > 0
+# combined_df = combined_df[mask]
 
 print("zips after removing outliers:", len(combined_df))
 
@@ -78,11 +78,21 @@ income_bins_quartile = q_binning(combined_df['Median_income'].values, 'Median_in
 # combined_df.to_csv('Clean_Data/data_by_zip.csv')
 
 
-mask = combined_df['existing_installs_count_per_capita'] < 0.06
-combined_df = combined_df[mask]
+# mask = combined_df['existing_installs_count_per_capita'] < 0.06
+# combined_df = combined_df[mask]
 
-state_df = load_state_data(combined_df, load=True)
+state_df = load_state_data(combined_df, load=False)
 
+combined_df = state_df
+
+# bar_plot_demo_split(combined_df, demos=["black_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons")
+# bar_plot_demo_split(combined_df, demos=["black_prop", "Median_income", "Republican_prop"], key="existing_installs_count_per_capita")
+bar_plot_demo_split(combined_df, demos=["black_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons_per_panel", type="percent")
+bar_plot_demo_split(combined_df, demos=["black_prop", "Median_income", "Republican_prop"], key="existing_installs_count_per_capita", type="percent")
+# bar_plot_demo_split(combined_df, demos=["black_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons", type="diff")
+# bar_plot_demo_split(combined_df, demos=["black_prop", "Median_income", "Republican_prop"], key="existing_installs_count_per_capita",type="diff")
+
+quit()
 
 
 # for key in ['carbon_offset_metric_tons_per_panel', 'carbon_offset_metric_tons']:
@@ -187,12 +197,20 @@ exemplar_states = ['Texas', 'California', 'Mississippi', 'Delaware', 'Massachuse
 # Scatter Plot exmple
 
 # scatter_plot(x=combined_df['households_below_poverty_line'].values, y=np.log(combined_df['panel_utilization']), xlabel="Percent below poverty line", ylabel="panel utilization", title=None,fit=[1])
-scatter_plot(x=combined_df['black_prop'], y=combined_df['panel_utilization'], xlabel="Black proportion of pop", ylabel='Existing installs', fit=[1])
-scatter_plot(x=combined_df['black_prop'], y=combined_df['carbon_offset_metric_tons'], xlabel="Black proportion of pop", ylabel='Carbon Offset (metric tons)', fit=[1])
+# scatter_plot(x=combined_df['black_prop'], y=combined_df['panel_utilization'], xlabel="Black proportion of pop", ylabel='Existing installs', fit=[1])
+# scatter_plot(x=combined_df['black_prop'], y=combined_df['carbon_offset_metric_tons'], xlabel="Black proportion of pop", ylabel='Carbon Offset (metric tons)', fit=[1])
 
 
-scatter_plot(x=state_df['Republican_prop'], y=state_df['carbon_offset_metric_tons'],xlabel="Preportion republican voter", ylabel='Panel Utilization', fit=[1],color="blue", alpha=1)
-scatter_plot(x=state_df['Republican_prop'], y=state_df['existing_installs_count'], xlabel="Preportion republican voter", ylabel='Existing install count', fit=[1],color="blue",alpha=1)
+exem_state_df = state_df[state_df['State'].isin(exemplar_states)]
+
+scatter_plot(x=exem_state_df['Republican_prop'], y=exem_state_df['carbon_offset_metric_tons'],xlabel="Preportion republican voter", ylabel='Carbon offset (metric tons) per capita', title="Republican preportion vs Carbon offset" ,fit=[1],color="blue", alpha=1)
+scatter_plot(x=exem_state_df['Republican_prop'], y=exem_state_df['existing_installs_count'], xlabel="Preportion republican voter", ylabel='Existing install count', fit=[1],color="blue",alpha=1)
+scatter_plot(x=exem_state_df['Median_income'], y=exem_state_df['carbon_offset_metric_tons'],xlabel="Median income", ylabel='Carbon offset (metric tons) per capita', title="Median income vs Carbon offset" ,fit=[1],color="blue", alpha=1)
+scatter_plot(x=exem_state_df['Median_income'], y=exem_state_df['existing_installs_count'], xlabel="Median income", ylabel='Existing install count', fit=[1],color="blue",alpha=1)
+scatter_plot(x=exem_state_df['black_prop'], y=exem_state_df['carbon_offset_metric_tons'],xlabel="Black population preportion", ylabel='Carbon offset (metric tons) per capita', title="Black preportion vs Carbon offset" ,fit=[1],color="blue", alpha=1)
+scatter_plot(x=exem_state_df['black_prop'], y=exem_state_df['existing_installs_count'], xlabel="Black population preportion", ylabel='Existing install count', fit=[1],color="blue",alpha=1)
+
+
 
 # scatter_plot(x=combined_df['carbon_offset_metric_tons_per_capita'], y=np.log(combined_df['Median_income']), xlabel="Carbon Offset per capita", ylabel='Log Median Income', fit=[2])
 # scatter_plot(x=combined_df['households_below_poverty_line'], y=np.log(combined_df['Median_income']), xlabel="Households below poverty line", ylabel='Log Median Income', fit=[2])

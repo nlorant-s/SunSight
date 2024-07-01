@@ -208,6 +208,50 @@ def plot_state_map(stats_df, key, fill_color="BuPu"):
 
     # m.show_in_browser()
 
+def bar_plot_demo_split(df, demos, key, type="avg value"):
+    true_avg = np.mean(df[key].values)
+
+    new_df = pd.DataFrame()
+    low_avgs = []
+    high_avgs = []
+    
+    for demo in demos:
+        median = np.median(df[demo].values)
+        low_avg = np.mean(df[df[demo] < median][key].values)
+        high_avg = np.mean(df[df[demo] >= median][key].values)
+
+        if type == "percent":
+            low_avg = (low_avg/true_avg) - 1
+            high_avg = (high_avg/true_avg) -1
+        if type == "diff":
+            low_avg = true_avg - low_avg
+            high_avg = true_avg - high_avg
+
+        low_avgs.append(low_avg)
+        high_avgs.append(high_avg)
+    
+    new_df['demographic'] = demos
+    new_df['Below median'] = low_avgs
+    new_df['Above median'] = high_avgs
+
+
+    ax = new_df.set_index('demographic').plot(kind='bar', stacked=False)
+
+    for p in ax.patches:
+        ax.annotate(str(np.round(p.get_height(), 3)), (p.get_x() * 1.005, p.get_height() * 1.005))
+
+    if type == "percent":
+        true_avg = 0
+    if type == "diff":
+        true_avg = 0
+
+    plt.axhline(y=true_avg, color='r', linestyle='--', label="National Average")
+    plt.title("demographic relationship to " + key + " by " + type)
+    plt.ylabel(key)
+    plt.show()
+
+
+
 
 def plot_state_stats(stats_df, key, states=None, sort_by='mean'):
 
