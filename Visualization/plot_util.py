@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import pgeocode
 import plotly.graph_objects as go
@@ -56,9 +57,10 @@ def scatter_plot(x, y, xlabel="", ylabel="", title=None, fit=None, label="", sho
                 fit_dat_and_plot(dat["x"].values, dat["y"].values, deg, label, label_plot=label_fit, log=log)
 
     plt.scatter(dat['x'], dat['y'], color=color, alpha=alpha, label=label)
+    plt.subplots_adjust(bottom=0.2)
 
     if show:
-        plt.xlabel(xlabel)
+        plt.xlabel(xlabel, labelpad=0.1)
         plt.ylabel(ylabel)
         plt.legend()
         if title is None:
@@ -146,7 +148,7 @@ def geo_plot(dat, color_scale, title, edf=None, zipcodes=None):
             colorscale = color_scale,
             reversescale = True,
             opacity = 0.6,
-            size = 10,
+            size = 20,
             colorbar = dict(
                 titleside = "right",
                 outlinecolor = "rgba(68, 68, 68, 0)",
@@ -159,6 +161,11 @@ def geo_plot(dat, color_scale, title, edf=None, zipcodes=None):
     fig.update_layout(
             title = title,
             geo_scope='usa',
+            font=dict(
+            family="Courier New, monospace",
+            size=36,
+            color="RebeccaPurple",
+        )
         )
     fig.show()
 
@@ -208,8 +215,10 @@ def plot_state_map(stats_df, key, fill_color="BuPu"):
 
     # m.show_in_browser()
 
-def bar_plot_demo_split(df, demos, key, type="avg value"):
+def bar_plot_demo_split(df, demos, key, type="avg value", stacked=False, xticks=None, title=None, ylabel=None, annotate=True):
     true_avg = np.mean(df[key].values)
+
+    plt.style.use('fivethirtyeight')
 
     new_df = pd.DataFrame()
     low_avgs = []
@@ -235,19 +244,32 @@ def bar_plot_demo_split(df, demos, key, type="avg value"):
     new_df['Above median'] = high_avgs
 
 
-    ax = new_df.set_index('demographic').plot(kind='bar', stacked=False)
+    ax = new_df.set_index('demographic').plot(kind='bar', stacked=stacked)
 
-    for p in ax.patches:
-        ax.annotate(str(np.round(p.get_height(), 3)), (p.get_x() * 1.005, p.get_height() * 1.005))
+    if annotate:
+        for p in ax.patches:
+            ax.annotate(str(np.round(p.get_height(), 3)), (p.get_x() + p.get_width()/7 - ((p.get_height() < 0) * 0.01) , p.get_height() / 2 ))
 
     if type == "percent":
         true_avg = 0
     if type == "diff":
         true_avg = 0
 
+
+
+    
     plt.axhline(y=true_avg, color='r', linestyle='--', label="National Average")
-    plt.title("demographic relationship to " + key + " by " + type)
-    plt.ylabel(key)
+    plt.xlabel("")
+    if title is not None:
+        plt.title(title)
+    else:
+        plt.title("demographic relationship to " + key + " by " + type)
+    if ylabel is not None:
+        plt.ylabel(ylabel)
+    else:
+        plt.ylabel(key)
+    if xticks is not None:
+        ax.set_xticklabels(xticks, rotation='horizontal')    
     plt.show()
 
 
