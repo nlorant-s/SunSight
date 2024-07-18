@@ -83,7 +83,7 @@ income_bins_quartile = q_binning(combined_df['Median_income'].values, 'Median_in
 # Increase Font size
 font = {'family' : 'DejaVu Sans',
     'weight' : 'bold',
-    'size'   : 22}
+    'size'   : 35}
 
 matplotlib.rc('font', **font)
 
@@ -101,9 +101,10 @@ state_df = load_state_data(combined_df, load=True)
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons", type="diff")
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="existing_installs_count_per_capita",type="diff")
 
-bar_plot_demo_split(combined_df, demos=["black_prop", "white_prop", "asian_prop", "Median_income", "yearly_sunlight_kwh_kw_threshold_avg"], xticks=['Black', 'White','Asian', 'Median income', 'Yeary Sunlight'], key="carbon_offset_metric_tons_per_panel", type="percent", stacked=True, ylabel="", title="Carbon Offset vs National Average")
-bar_plot_demo_split(combined_df, demos=["black_prop", "white_prop", "asian_prop", "Median_income", "yearly_sunlight_kwh_kw_threshold_avg"], key="existing_installs_count_per_capita", xticks=['Black', 'White','Asian', 'Median income', 'Yeary Sunlight'] , type="percent", stacked=True, ylabel="", title="Existing installs vs National Average")
+bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], xticks=['Black', 'White', 'Median income', 'Yeary Sunlight', 'Republican'], key="carbon_offset_metric_tons_per_panel", type="percent", stacked=True, ylabel="", title="Carbon Offset Per Panel vs National Average")
+bar_plot_demo_split(state_df, demos=["black_prop", "white_prop","Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], key="panel_utilization", xticks=['Black', 'White','Median income', 'Yeary Sunlight', 'Republican'] , type="percent", stacked=True, ylabel="", title="Panel Utilization vs National Average")
 
+quit()
 
 # for key in ['carbon_offset_metric_tons_per_panel', 'carbon_offset_metric_tons']:
     # state_stats = stats_for_states(combined_df, key)
