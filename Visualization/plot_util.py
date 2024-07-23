@@ -9,6 +9,7 @@ import seaborn as sns
 import folium as fl
 import io
 from PIL import Image
+import branca.colormap as cm
 
 def fit_dat_and_plot(x, y, deg, label="", label_plot=False, log=False):
 
@@ -196,17 +197,20 @@ def state_bar_plot(energy_gen_df, states=['Texas', 'Massachusetts', "California"
     plt.title(title)
     plt.show()
 
-def plot_state_map(stats_df, key, fill_color="BuPu"):
+def plot_state_map(stats_df, key, fill_color="BuPu", zoom=4.8, location=[38,-96.5], legend_name=None):
 
     url = (
         "https://raw.githubusercontent.com/python-visualization/folium/main/examples/data"
     )
     state_geo = f"{url}/us-states.json"
 
-    m = fl.Map([43, -100], zoom_start=4)
+    m = fl.Map(location, zoom_start=zoom, zoom_control=False)
+
+    if legend_name is None:
+        legend_name = key
 
     fl.Choropleth(geo_data=state_geo, data=stats_df,
-    columns=['State code', key],key_on='feature.id',fill_color=fill_color, fill_opacity=0.7,line_opacity=.1,legend_name=key).add_to(m)
+    columns=['State code', key],key_on='feature.id', fill_color=fill_color, line_weight=1, fill_opacity=0.7, line_opacity=.5,legend_name=legend_name).add_to(m)
 
     img_data = m._to_png(5)
     img = Image.open(io.BytesIO(img_data))

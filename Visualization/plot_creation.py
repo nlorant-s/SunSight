@@ -101,10 +101,10 @@ state_df = load_state_data(combined_df, load=True)
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons", type="diff")
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="existing_installs_count_per_capita",type="diff")
 
-bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], xticks=['Black', 'White', 'Median income', 'Yeary Sunlight', 'Republican'], key="carbon_offset_metric_tons_per_panel", type="percent", stacked=True, ylabel="", title="Carbon Offset Per Panel vs National Average")
-bar_plot_demo_split(state_df, demos=["black_prop", "white_prop","Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], key="panel_utilization", xticks=['Black', 'White','Median income', 'Yeary Sunlight', 'Republican'] , type="percent", stacked=True, ylabel="", title="Panel Utilization vs National Average")
+# bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], xticks=['Black', 'White', 'Median income', 'Yeary Sunlight', 'Republican'], key="carbon_offset_metric_tons_per_panel", type="percent", stacked=True, ylabel="", title="Carbon Offset Per Panel vs National Average")
+# bar_plot_demo_split(state_df, demos=["black_prop", "white_prop","Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], key="panel_utilization", xticks=['Black', 'White','Median income', 'Yeary Sunlight', 'Republican'] , type="percent", stacked=True, ylabel="", title="Panel Utilization vs National Average")
 
-quit()
+# quit()
 
 # for key in ['carbon_offset_metric_tons_per_panel', 'carbon_offset_metric_tons']:
     # state_stats = stats_for_states(combined_df, key)
@@ -134,7 +134,7 @@ quit()
 # for key in ['carbon_offset_metric_tons_per_panel', 'Median_income', 'solar_potential_per_capita', 'solar_utilization', 'panel_utilization']:
 
 # # Example Geo Plot (map of us)
-geo_plot(combined_df['carbon_offset_metric_tons_per_panel'] ,'rainbow', "Carbon offset per panel", pos_df)
+# geo_plot(combined_df['carbon_offset_metric_tons_per_panel'] ,'rainbow', "Carbon offset per panel", pos_df)
 # geo_plot(combined_df['existing_installs_count'] ,'rainbow', "Existing Installs", pos_df)
 # geo_plot(combined_df['number_of_panels_total'] ,'rainbow', "Panel Total", pos_df)
 # geo_plot(combined_df['panel_utilization'] ,'rainbow', "Panel Util", pos_df)
@@ -150,10 +150,10 @@ print("Plotting")
 # states = ['California']
 # combined_df = combined_df[combined_df['state_name'].isin(states)]
 # scatter_plot(x=np.log(combined_df['carbon_offset_metric_tons']), y=np.log(combined_df['existing_installs_count']), xlabel="Log Potential carbon offset", ylabel="Log Existing Panel Count", title=None, fit=[1,2], log=False, color="red")
-co_bins_quartile = q_binning(combined_df['carbon_offset_metric_tons'].values, 'carbon_offset_metric_tons', q=2, legible_label="Carbon Offset" )
-co_per_bins_quartile = q_binning(combined_df['carbon_offset_metric_tons_per_panel'].values, 'carbon_offset_metric_tons_per_panel',q=4, legible_label="Carbon Offset Per Panel")
-complex_scatter(combined_df=combined_df, x=combined_df['carbon_offset_metric_tons'], y=combined_df['existing_installs_count'], xlabel="Potential carbon offset (Metric Tons)", ylabel="Existing Installed Panels", title=None, bins=co_bins_quartile, fit=[2], legend=True)
-scatter_plot(x=combined_df['carbon_offset_metric_tons_per_panel'], y=combined_df['existing_installs_count_per_capita'], xlabel="Potential carbon offset per panel", ylabel="Existing Panel Count Per Capita", title=None, fit=[2], log=False, color="red")
+# co_bins_quartile = q_binning(combined_df['carbon_offset_metric_tons'].values, 'carbon_offset_metric_tons', q=2, legible_label="Carbon Offset" )
+# co_per_bins_quartile = q_binning(combined_df['carbon_offset_metric_tons_per_panel'].values, 'carbon_offset_metric_tons_per_panel',q=4, legible_label="Carbon Offset Per Panel")
+# complex_scatter(combined_df=combined_df, x=combined_df['carbon_offset_metric_tons'], y=combined_df['existing_installs_count'], xlabel="Potential carbon offset (Metric Tons)", ylabel="Existing Installed Panels", title=None, bins=co_bins_quartile, fit=[2], legend=True)
+# scatter_plot(x=combined_df['carbon_offset_metric_tons_per_panel'], y=combined_df['existing_installs_count_per_capita'], xlabel="Potential carbon offset per panel", ylabel="Existing Panel Count Per Capita", title=None, fit=[2], log=False, color="red")
 
 # Shows where we should put panels
 # geo_plot(np.log(combined_df['carbon_offset_metric_tons'] * combined_df['existing_installs_count']) ,'rainbow', "Carbon offset Per Capita", pos_df)
@@ -186,17 +186,22 @@ exemplar_states = ['Texas', 'California', 'Mississippi', 'Delaware', 'Massachuse
 
 # state_bar_plot(state_df, states=exemplar_states, keys=['carbon_offset_metric_tons_per_panel', 'existing_installs_count_per_capita', 'Median_income'], sort_by='carbon_offset_metric_tons_per_panel', ylabel=key, title="By state stats")
 
+no_dc = state_df['State code'].isin(["DC", "HI"])
 
-plot_state_map(state_df, key='carbon_offset_metric_tons_per_panel')
+state_df_no_dc = state_df[~no_dc]
+
+# plot_state_map(state_df, key='carbon_offset_metric_tons_per_panel', fill_color='OrRd', legend_name="Carbon Offset Per Panel")
 # plot_state_map(state_df, key='Fossil_prop')
-# plot_state_map(state_df, key='Democrat_prop')
-# plot_state_map(state_df, key='Republican_prop')
-# plot_state_map(state_df, key='Median_income') 
-# plot_state_map(state_df, key='black_prop')
+# plot_state_map(state_df[no_dc], key='Democrat_prop')
+# plot_state_map(state_df_no_dc, key='panel_utilization', fill_color='OrRd', legend_name="Panel Utilization")
+# plot_state_map(state_df, key='Republican_prop', legend_name="Republican Voter Proportion")
+# plot_state_map(state_df, key='Median_income', legend_name="Median Income") 
+# plot_state_map(state_df, key='black_prop', legend_name="Black Population Proportion")
 # plot_state_map(state_df, key='white_prop')  
 # plot_state_map(state_df, key='carbon_offset_metric_tons')
-# plot_state_map(state_df, key='existing_installs_count')
-# plot_state_map(state_df, key='Clean_prop')
+# plot_state_map(state_df[no_dc], key='existing_installs_count')
+# plot_state_map(state_df, key='yearly_sunlight_kwh_kw_threshold_avg', legend_name="Yearly Average Sunlight")
+# plot_state_map(state_df, key='Clean_prop', legend_name="Clean Energy Gen Proportion")
 # plot_state_map(state_df, key='Solar_prop')
 
 # Supporting plots (shows energy generation Splits)
