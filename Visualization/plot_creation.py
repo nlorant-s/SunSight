@@ -52,6 +52,8 @@ matplotlib.rc('font', **font)
 
 state_df = load_state_data(combined_df, load=True)
 
+scatter_plot(combined_df['carbon_offset_metric_tons_per_panel'] * 1000, combined_df['yearly_sunlight_kwh_kw_threshold_avg'], None, xlabel="Carbon Offset Per Panel (Kg)", ylabel="Yearly Average Sunlight KW hours", alpha=0.8, avgs=True, c=combined_df['yearly_sunlight_kwh_kw_threshold_avg']/(combined_df['carbon_offset_metric_tons_per_panel'] + 0.1), cmap='cool', color=None)
+
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons")
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="existing_installs_count_per_capita")
 # bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "asian_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons_per_capita", type="percent", stacked=True, xticks=['Black', 'White','Asian', 'Median income', 'Republican'], ylabel="Carbon Offset Per Capita (Percent above average)", title="")
@@ -143,20 +145,20 @@ exemplar_states = ['Texas', 'California', 'Mississippi', 'Delaware', 'Massachuse
 
 
 # Exemplar states carbon offset to demo why we picked them
-for key in ['carbon_offset_metric_tons_per_panel', 'panel_utilization', 'Median_income']:
-    state_bar_plot(state_df, states=exemplar_states, keys=[key], ylabel=key, title="By state stats")
+# for key in ['carbon_offset_metric_tons_per_panel', 'panel_utilization', 'Median_income']:
+#     state_bar_plot(state_df, states=exemplar_states, keys=[key], ylabel=key, title="By state stats")
 
 
 # Plot just the clean vs fossil generation of each state
-state_bar_plot(state_df, states=exemplar_states, keys=['Clean_prop','Fossil_prop'], sort_by="Clean_prop", legend_loc='right', fontsize=40, ylabel="")
+# state_bar_plot(state_df, states=exemplar_states, keys=['Clean_prop','Fossil_prop'], sort_by="Clean_prop", legend_loc='right', fontsize=40, ylabel="")
 
 # Plot full breakdown of energy gen by state
-state_bar_plot(state_df,states=exemplar_states, keys=['Solar_prop', 'Bioenergy_prop', 'Coal_prop','Gas_prop','Hydro_prop','Nuclear_prop','Wind_prop', 'Other Renewables_prop', 'Other Fossil_prop'], sort_by="Solar_prop",legend_loc='right',fontsize=40, ylabel="")
+# state_bar_plot(state_df,states=exemplar_states, keys=['Solar_prop', 'Bioenergy_prop', 'Coal_prop','Gas_prop','Hydro_prop','Nuclear_prop','Wind_prop', 'Other Renewables_prop', 'Other Fossil_prop'], sort_by="Solar_prop",legend_loc='right',fontsize=40, ylabel="")
 
 
 # state_bar_plot(state_df, states=exemplar_states, keys=['carbon_offset_metric_tons_per_panel', 'existing_installs_count_per_capita', 'Median_income'], sort_by='carbon_offset_metric_tons_per_panel', ylabel=key, title="By state stats")
 
-no_dc = state_df['State code'].isin(["DC", "HI"])
+# no_dc = state_df['State code'].isin(["DC", "HI"])
 
 # state_df_no_dc = state_df[~no_dc]
 

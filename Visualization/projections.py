@@ -1,7 +1,7 @@
 from plot_util import *
 from data_load_util import *
 
-combined_df = make_dataset(remove_outliers=False)
+combined_df = make_dataset(remove_outliers=True)
 max_num_added = 100000
 projections = create_projections(combined_df, n=max_num_added, load=False)
 

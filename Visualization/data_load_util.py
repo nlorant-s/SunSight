@@ -309,6 +309,9 @@ def make_dataset(remove_outliers=True):
     combined_df['carbon_offset_metric_tons_per_panel'] = (combined_df['carbon_offset_metric_tons'] / (combined_df['number_of_panels_total'] - combined_df['existing_installs_count'] ) )
     combined_df['carbon_offset_metric_tons_per_capita'] = combined_df['carbon_offset_metric_tons']/ combined_df['Total_Population']
 
+    mask = combined_df['carbon_offset_metric_tons_per_panel'] > 50/1000
+    combined_df = combined_df[mask]
+
     asian_prop = (combined_df['asian_population'].values / combined_df['Total_Population'].values)
     white_prop = (combined_df['white_population'].values / combined_df['Total_Population'].values)
     black_prop = (combined_df['black_population'].values / combined_df['Total_Population'].values)
@@ -321,7 +324,7 @@ def make_dataset(remove_outliers=True):
 
     # combined_df['zips'] = zip_codes
 
-    return combined_df
+    return combined_df.reset_index(drop=True)
 
 
 # Creates a projection of carbon offset if the current ratio of panel locations remain the same 
@@ -356,6 +359,7 @@ def create_greedy_projection(combined_df, n=1000, sort_by='carbon_offset_metric_
 
 # Creates a projection of the carbon offset if we place panels to normalize the panel utilization along the given "demographic"
 # I.e. if we no correlation between the demographic and the panel utilization and only fous on that, how Carbon would we offset
+# TODO
 def create_pop_demo_normalizing_projection(combined_df, n=1000, demographic="black_prop"):
     pass
 
@@ -363,18 +367,16 @@ def create_pop_demo_normalizing_projection(combined_df, n=1000, demographic="bla
 # The zipcode is randomly chosen for each panel, up to n panels
 def create_random_proj(combined_df, n=1000):
     projection = np.zeros(n+1)
-    picks = np.random.randint(0, len(combined_df['region_name']), (n))
+    picks = np.random.randint(0, len(combined_df['region_name']) -1, (n))
     for i, pick in enumerate(picks):
 
         while math.isnan(combined_df['carbon_offset_metric_tons_per_panel'][pick]):
-            pick = np.random.randint(0, len(combined_df['region_name']))
-
+            pick = np.random.randint(0, len(combined_df['carbon_offset_metric_tons_per_panel']))
         projection[i+1] = projection[i] + combined_df['carbon_offset_metric_tons_per_panel'][pick]
 
     return projection
 
-
-
+# Creates multiple different projections and returns them
 def create_projections(combined_df, n=1000, load=False):
 
     if load and exists("Clean_Data/projections.csv"):
