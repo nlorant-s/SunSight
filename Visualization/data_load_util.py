@@ -356,6 +356,10 @@ def create_greedy_projection(combined_df, n=1000, sort_by='carbon_offset_metric_
     
     return projection
 
+# Creates a projection which decides each placement alternating between different policies
+def round_robin_projection(projections, n=1000):
+    pass
+
 # Creates a projection of the carbon offset if we place panels to normalize the panel utilization along the given "demographic"
 # I.e. if we no correlation between the demographic and the panel utilization and only fous on that, how Carbon would we offset
 # TODO

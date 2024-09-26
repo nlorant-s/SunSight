@@ -28,7 +28,7 @@ Full list of color scales:
 'ylorrd'
 '''
 
-combined_df = make_dataset()
+combined_df = make_dataset(remove_outliers=False)
 
 pop_bins_quartile = q_binning(combined_df['Total_Population'].values, 'Total_Population', q=4, legible_label="Population")
 white_prop_bins_quartile = q_binning(combined_df['white_prop'].values, 'white_prop', q=4, legible_label="White Proportion")
@@ -36,15 +36,17 @@ asain_prop_bins_quartile = q_binning(combined_df['asian_prop'].values, 'asian_pr
 black_prop_bins_med = q_binning(combined_df['black_prop'].values, 'black_prop', q=2, legible_label="Black Proportion")
 black_prop_bins_quartile = q_binning(combined_df['black_prop'].values, 'black_prop', q=4, legible_label="Black Proportion")
 income_bins_quartile = q_binning(combined_df['Median_income'].values, 'Median_income', q=4, legible_label="Median Income")
+co_bins_quartile = q_binning(combined_df['carbon_offset_metric_tons'].values, 'carbon_offset_metric_tons', q=4, legible_label="Carbon Offset" )
+co_per_bins_quartile = q_binning(combined_df['carbon_offset_metric_tons_per_panel'].values, 'carbon_offset_metric_tons_per_panel',q=4, legible_label="Carbon Offset Per Panel")
 
 # combined_df.to_csv('Clean_Data/data_by_zip.csv')
 
-# Increase Font size
-font = {'family' : 'DejaVu Sans',
-    'weight' : 'bold',
-    'size'   : 20}
+# # Increase Font size
+# font = {'family' : 'DejaVu Sans',
+#     'weight' : 'bold',
+#     'size'   : 20}
 
-matplotlib.rc('font', **font)
+# matplotlib.rc('font', **font)
 
 
 # mask = combined_df['existing_installs_count_per_capita'] < 0.06
@@ -52,18 +54,25 @@ matplotlib.rc('font', **font)
 
 state_df = load_state_data(combined_df, load=True)
 
-scatter_plot(combined_df['carbon_offset_metric_tons_per_panel'] * 1000, combined_df['yearly_sunlight_kwh_kw_threshold_avg'], None, xlabel="Carbon Offset Per Panel (Kg)", ylabel="Yearly Average Sunlight KW hours", alpha=0.8, avgs=True, c=combined_df['yearly_sunlight_kwh_kw_threshold_avg']/(combined_df['carbon_offset_metric_tons_per_panel'] + 0.1), cmap='cool', color=None)
+# Noman requested plot (Sunlight vs Carbon Offset)
+scatter_plot(combined_df['carbon_offset_metric_tons_per_panel'] * 1000, combined_df['yearly_sunlight_kwh_kw_threshold_avg'], None, xlabel="Carbon Offset Per Panel (Kg)", ylabel="Yearly Average Sunlight KW hours", alpha=0.8, avgs=True, c=combined_df['yearly_sunlight_kwh_kw_threshold_avg']/(combined_df['carbon_offset_metric_tons_per_panel'] + 0.1), cmap='cool', color=None, title="")
+
+
+
+# Main/ Intro Plot 
+# complex_scatter(combined_df=combined_df, x=combined_df['carbon_offset_metric_tons'] *1000, y=combined_df['existing_installs_count'], xlabel="Potential carbon offset (Kg)", ylabel="Existing Installs", title="", bins=co_bins_quartile, fit=[2], legend=True, square=True, fontsize=20)
 
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons")
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="existing_installs_count_per_capita")
-# bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "asian_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons_per_capita", type="percent", stacked=True, xticks=['Black', 'White','Asian', 'Median income', 'Republican'], ylabel="Carbon Offset Per Capita (Percent above average)", title="")
+# bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "asian_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons_per_panel", type="percent", stacked=True, xticks=['Black', 'White','Asian', 'Median income', 'Republican'], ylabel="Carbon Offset Per Capita (Percent above average)", title="")
 # bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "asian_prop", "Median_income", "Republican_prop"], key="existing_installs_count_per_capita", type="percent", stacked=True,  xticks=['Black', 'White','Asian', 'Median income', 'Republican'], ylabel="Existing Installs Per Capita (Percent above average)", title="")
 # bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "asian_prop", "Median_income", "Republican_prop"], key="panel_utilization", type="percent", stacked=True,  xticks=['Black', 'White','Asian', 'Median income', 'Republican'], ylabel="Panel Utilization (Percent above average)", title="")
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons", type="diff")
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="existing_installs_count_per_capita",type="diff")
 
-# bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], xticks=['Black', 'White', 'Median income', 'Yeary Sunlight', 'Republican'], key="carbon_offset_metric_tons_per_panel", type="percent", stacked=True, ylabel="", title="Carbon Offset Per Panel vs National Average")
-# bar_plot_demo_split(state_df, demos=["black_prop", "white_prop","Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], key="panel_utilization", xticks=['Black', 'White','Median income', 'Yeary Sunlight', 'Republican'] , type="percent", stacked=True, ylabel="", title="Panel Utilization vs National Average")
+# bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], xticks=['Black', 'White', 'Income', 'Usable Sun', 'Republican'], key="carbon_offset_metric_tons_per_panel", type="percent", stacked=True, ylabel="Carbon Offset Per Panel", title="")
+# bar_plot_demo_split(state_df, demos=["black_prop", "white_prop","Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], key="panel_utilization", xticks=['Black', 'White','Income', 'Usable Sun', 'Republican'] , type="percent", stacked=True, ylabel="Panel Utilization", title="")
+# bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], xticks=['Black', 'White', 'Income', 'Usable Sun', 'Republican'], key="existing_installs_count_per_capita", type="percent", stacked=True, ylabel="Existing Installs Per Capita", title="")
 
 # quit()
 
