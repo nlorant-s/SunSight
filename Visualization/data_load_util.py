@@ -343,7 +343,6 @@ def create_greedy_projection(combined_df, n=1000, sort_by='carbon_offset_metric_
     projection = np.zeros(n+1)
     greedy_best_not_filled_index = 0
     existing_count = sorted_combined_df['existing_installs_count'][greedy_best_not_filled_index]
-    print(sorted_combined_df['count_qualified'][greedy_best_not_filled_index])
     i = 0
     while (i < n):
         if existing_count >= sorted_combined_df['count_qualified'][greedy_best_not_filled_index]:
@@ -383,17 +382,25 @@ def create_projections(combined_df, n=1000, load=False):
         return pd.read_csv("Clean_Data/projections.csv")
     
     proj = pd.DataFrame()
+    print("Creating Continued Projection")
     proj['Continued'] = create_continued_projection(combined_df, n)
+    print("Creating Greedy Carbon Offset Projection")
     proj['Greedy Carbon Offset'] = create_greedy_projection(combined_df, n, sort_by='carbon_offset_metric_tons_per_panel')
+    print("Creating Greedy Average Sun Projection")
     proj['Greedy Average Sun'] = create_greedy_projection(combined_df, n, sort_by='yearly_sunlight_kwh_kw_threshold_avg')
+    print("Creating Greedy Black Proportion Projection")
     proj['Greedy Black Proportion'] = create_greedy_projection(combined_df, n, sort_by='black_prop')
+    print("Creating Greedy Low Median Income Projection")
     proj['Greedy Low Median Income'] = create_greedy_projection(combined_df, n, sort_by='Median_income', ascending=True)
 
-    uniform_samples = 10
 
-    proj['Uniform Random (' + str(uniform_samples) + ' samples)' ] = np.zeros(n+1)
-    for i in range(uniform_samples):
-        proj['Uniform Random (' + str(uniform_samples) + ' samples)' ] += create_random_proj(combined_df, n)/uniform_samples
+    # uniform_samples = 10
+
+    # print("Creating uniform random projection with", uniform_samples, "samples")
+
+    # proj['Uniform Random (' + str(uniform_samples) + ' samples)' ] = np.zeros(n+1)
+    # for i in range(uniform_samples):
+    #     proj['Uniform Random (' + str(uniform_samples) + ' samples)' ] += create_random_proj(combined_df, n)/uniform_samples
     
 
     proj.to_csv("Clean_Data/projections.csv",index=False)
