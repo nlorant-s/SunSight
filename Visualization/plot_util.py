@@ -10,6 +10,7 @@ import folium as fl
 import io
 from PIL import Image
 import branca.colormap as cm
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 def fit_dat_and_plot(x, y, deg, label="", label_plot=False, log=False):
 
@@ -45,7 +46,7 @@ def scatter_plot(x, y, texts=None, xlabel="", ylabel="", title=None, fit=None, l
 
     font = {'family' : 'DejaVu Sans',
     'weight' : 'bold',
-    'size'   : 20}
+    'size'   : 15}
 
 
     dat = pd.DataFrame()
@@ -62,10 +63,15 @@ def scatter_plot(x, y, texts=None, xlabel="", ylabel="", title=None, fit=None, l
         for deg in fit:
                 fit_dat_and_plot(dat["x"].values, dat["y"].values, deg, label, label_plot=label_fit, log=log)
 
-    if color == None:
-        plt.scatter(dat['x'], dat['y'], alpha=alpha, label=label, c=c, cmap=cmap)
-    else:
+    if color == '':
+        plt.scatter(dat['x'], dat['y'], alpha=alpha, label=label, c=c, cmap=cmap,norm=matplotlib.colors.LogNorm())
+        plt.colorbar()
+        plt.text(np.max(dat['x'])*1.15, (np.max(dat['y']) + np.min(dat['y'])) /2 + 400, "National Max", rotation=0, fontdict=font)
+        plt.text(np.max(dat['x'])*1.2, (np.max(dat['y']) + np.min(dat['y'])) /2 - 150, "Log Realized Potential", rotation=270, fontdict=font)
+    elif color is not None:
         plt.scatter(dat['x'], dat['y'], color=color, alpha=alpha, label=label)
+    else:
+        plt.scatter(dat['x'], dat['y'], alpha=alpha, label=label)
 
     if texts is not None:
         # add labels to all points
@@ -75,13 +81,23 @@ def scatter_plot(x, y, texts=None, xlabel="", ylabel="", title=None, fit=None, l
     if avgs:
         x_avg = np.mean(dat['x'])
         y_avg = np.mean(dat['y'])
+
+        # Making lines seperating along the average of each axis
         plt.hlines(y_avg, np.min(dat['x']), np.max(dat['x']), colors='darkgray' ,linestyles='dashed', linewidth=4)
         plt.text(np.min(dat['x']), y_avg+15, "Average: " + str(np.round(y_avg, 2)), alpha=1, fontdict=font)
-        plt.vlines(x_avg, np.min(dat['y']), np.max(dat['y']), colors='darkgray' ,linestyles='dashed', linewidth=4) 
-        plt.text(x_avg+5, np.max(dat['y']), "Average : " + str(np.round(x_avg, 2)), alpha=1, fontdict=font)
+        plt.vlines(x_avg, np.min(dat['y']), np.max(dat['y']) - 30, colors='darkgray' ,linestyles='dashed', linewidth=4) 
+        plt.text(x_avg-40, np.max(dat['y']), "Average : " + str(np.round(x_avg, 2)), alpha=1, fontdict=font)
+
+        # Printing the percent of point in each quadrant too
+        total = len(dat['x'])
+        plt.text(np.min(dat['x']) - 5, np.max(dat['y']), "In quadrant: " + str(((((np.sum((dat['x'] < x_avg) * (dat['y'] > y_avg))) / total) * 1000) // 1) /10) + '%', alpha=1, fontsize=15)
+        plt.text(np.min(dat['x']) - 5, np.min(dat['y']), "In quadrant: " + str(((((np.sum((dat['x'] < x_avg) * (dat['y'] < y_avg))) / total) * 1000) // 1) /10) + '%', alpha=1, fontsize=15) 
+        plt.text(np.max(dat['x'])*0.8 , np.max(dat['y']), "In quadrant: " + str(((((np.sum((dat['x'] > x_avg) * (dat['y'] > y_avg))) / total) * 1000) // 1) /10) + '%', alpha=1, fontsize=15)
+        plt.text(np.max(dat['x'])*0.8 , np.min(dat['y']), "In quadrant: " + str(((((np.sum((dat['x'] > x_avg) * (dat['y'] < y_avg))) / total) * 1000) // 1) /10) + '%', alpha=1, fontsize=15) 
 
     plt.xticks(fontsize=fontsize)
     plt.yticks(fontsize=fontsize)
+    plt.tight_layout()
     if show:
         plt.xlabel(xlabel,fontdict=font, labelpad=20)
         plt.ylabel(ylabel,fontdict=font, labelpad=20)
@@ -152,6 +168,7 @@ def complex_scatter(combined_df, x, y, xlabel, ylabel, fit=[1], title=None, bins
             plt.title(ylabel + " versus " + xlabel, fontsize=fontsize)
         else:
             plt.title(title, fontsize=fontsize)
+        plt.tight_layout()
         plt.show()
 
 # Creates a US map plot of the dat, edf should be provided, but if it isn't then it will be created as necessary using the zipcodes provided
@@ -313,6 +330,7 @@ def bar_plot_demo_split(df, demos, key, type="avg value", stacked=False, xticks=
     if type == "diff":
         true_avg = 0
 
+    plt.tight_layout()
     plt.axhline(y=true_avg, color='k', linestyle='--', label="National Average",linewidth=5)
     plt.xlabel("")
     plt.yticks(fontsize=30)

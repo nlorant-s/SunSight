@@ -55,12 +55,12 @@ co_per_bins_quartile = q_binning(combined_df['carbon_offset_metric_tons_per_pane
 state_df = load_state_data(combined_df, load=True)
 
 # Noman requested plot (Sunlight vs Carbon Offset)
-scatter_plot(combined_df['carbon_offset_metric_tons_per_panel'] * 1000, combined_df['yearly_sunlight_kwh_kw_threshold_avg'], None, xlabel="Carbon Offset Per Panel (Kg)", ylabel="Yearly Average Sunlight KW hours", alpha=0.8, avgs=True, c=combined_df['yearly_sunlight_kwh_kw_threshold_avg']/(combined_df['carbon_offset_metric_tons_per_panel'] + 0.1), cmap='cool', color=None, title="")
+# scatter_plot(combined_df['carbon_offset_metric_tons_per_panel'] * 1000, combined_df['yearly_sunlight_kwh_kw_threshold_avg'], None, xlabel="Carbon Offset Per Panel (Kg)", ylabel="Yearly Average Sunlight (kWh)", alpha=0.8, avgs=True, c=combined_df['panel_utilization'], cmap='inferno', color=None, title="")
 
 
 
 # Main/ Intro Plot 
-# complex_scatter(combined_df=combined_df, x=combined_df['carbon_offset_metric_tons'] *1000, y=combined_df['existing_installs_count'], xlabel="Potential carbon offset (Kg)", ylabel="Existing Installs", title="", bins=co_bins_quartile, fit=[2], legend=True, square=True, fontsize=20)
+complex_scatter(combined_df=combined_df, x=combined_df['carbon_offset_metric_tons'] *1000, y=combined_df['existing_installs_count'], xlabel="Potential carbon offset (Kg)", ylabel="Existing Installs", title="", bins=co_bins_quartile, fit=[2], legend=True, square=True, fontsize=20)
 
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="carbon_offset_metric_tons")
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="existing_installs_count_per_capita")
@@ -71,7 +71,7 @@ scatter_plot(combined_df['carbon_offset_metric_tons_per_panel'] * 1000, combined
 # bar_plot_demo_split(state_df, demos=["black_prop", "Median_income", "Republican_prop"], key="existing_installs_count_per_capita",type="diff")
 
 # bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], xticks=['Black', 'White', 'Income', 'Usable Sun', 'Republican'], key="carbon_offset_metric_tons_per_panel", type="percent", stacked=True, ylabel="Carbon Offset Per Panel", title="")
-# bar_plot_demo_split(state_df, demos=["black_prop", "white_prop","Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], key="panel_utilization", xticks=['Black', 'White','Income', 'Usable Sun', 'Republican'] , type="percent", stacked=True, ylabel="Panel Utilization", title="")
+# bar_plot_demo_split(state_df, demos=["black_prop", "white_prop","Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], key="panel_utilization", xticks=['Black', 'White','Income', 'Usable Sun', 'Republican'] , type="percent", stacked=True, ylabel="Realized Potential", title="")
 # bar_plot_demo_split(state_df, demos=["black_prop", "white_prop", "Median_income", "yearly_sunlight_kwh_kw_threshold_avg", "Republican_prop"], xticks=['Black', 'White', 'Income', 'Usable Sun', 'Republican'], key="existing_installs_count_per_capita", type="percent", stacked=True, ylabel="Existing Installs Per Capita", title="")
 
 # quit()
