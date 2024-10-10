@@ -82,6 +82,17 @@ def get_zip_info(zip_codes, save=None, code_dict=None):
     return census_df
     # return combined
 
+# BY BUILDING (lat/long) SOLAR DATA
+def get_building_stats(lat=0,long=0,label='test',API_key=''):
+    # Example lat and long
+    lat = 37.4450
+    long = -122.1390
+
+    link = 'https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=' +str(lat)+'&location.longitude='+str(long)+'&requiredQuality=HIGH&key='+str(API_key)
+    df = pd.read_json(link).drop('roofSegmentStats').drop('solarPanelConfigs').drop('financialAnalyses').drop('solarPanels').to_csv('Data/test/'+label+".csv")
+
+    print(df)
+
 
 # Define which codes to use and what they are here, find the full instructions for these codes here:
 # https://www.census.gov/programs-surveys/acs/technical-documentation/code-lists.html

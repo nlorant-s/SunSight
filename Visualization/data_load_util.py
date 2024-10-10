@@ -198,10 +198,10 @@ def load_election_data(load=True):
 
     return new_df
 
-def load_state_data(df, energy_keys=['Clean', 'Bioenergy', 'Coal','Gas','Fossil','Solar','Hydro','Nuclear','Wind','Other Renewables','Other Fossil','Total Generation'], stats_keys=["Total_Population","total_households","Median_income","per_capita_income","households_below_poverty_line","black_population","white_population","asian_population","native_population", "black_prop","white_prop", "asian_prop","yearly_sunlight_kwh_kw_threshold_avg", "existing_installs_count", "carbon_offset_metric_tons", "carbon_offset_metric_tons_per_panel","carbon_offset_metric_tons_per_capita" , 'existing_installs_count_per_capita',  "existing_installs_count_per_capita", "panel_utilization"], load=False):
+def load_state_data(df, energy_keys=['Clean', 'Bioenergy', 'Coal','Gas','Fossil','Solar','Hydro','Nuclear','Wind','Other Renewables','Other Fossil','Total Generation'], stats_keys=["Total_Population","total_households","Median_income","per_capita_income","households_below_poverty_line","black_population","white_population","asian_population","native_population", "black_prop","white_prop", "asian_prop","yearly_sunlight_kwh_kw_threshold_avg", "existing_installs_count", "carbon_offset_metric_tons", "carbon_offset_metric_tons_per_panel","carbon_offset_metric_tons_per_capita" , 'existing_installs_count_per_capita',  "existing_installs_count_per_capita", "panel_utilization", "realized_potential_percent", 'carbon_offset_kg_per_panel','carbon_offset_kg'], load="Clean_Data/data_by_state.csv", save="Clean_Data/data_by_state.csv"):
     
-    if load and exists("Clean_Data/data_by_state.csv"):
-        return pd.read_csv("Clean_Data/data_by_state.csv")
+    if load is not None and exists(load):
+        return pd.read_csv(load)
     
     election_df = load_election_data().drop('state', axis=1)
     energy_df = load_state_energy_dat(keys=energy_keys, load=False, total=False)
@@ -211,8 +211,9 @@ def load_state_data(df, energy_keys=['Clean', 'Bioenergy', 'Coal','Gas','Fossil'
         vals = stats_for_states(df=df, key=key)['mean'].values
         stats_df[key] = vals
 
-    combined_state_df = pd.concat([energy_df, election_df, stats_df], axis=1) 
-    combined_state_df.to_csv("Clean_Data/data_by_state.csv",index=False)
+    combined_state_df = pd.concat([energy_df, election_df, stats_df], axis=1)
+    if save is not None:
+        combined_state_df.to_csv(save, index=False)
 
     combined_state_df = combined_state_df[combined_state_df['State'] != "Washington, D.C."]
 
@@ -301,6 +302,8 @@ def make_dataset(remove_outliers=True):
     # Current working metric of "solar utilization", should be ~ current carbon offset
     combined_df['solar_utilization'] = (combined_df['existing_installs_count'] / combined_df['number_of_panels_total']) * combined_df['carbon_offset_metric_tons']
     combined_df['panel_utilization'] = (combined_df['existing_installs_count'] / combined_df['number_of_panels_total'])
+    combined_df['realized_potential_percent'] = (combined_df['existing_installs_count'] / combined_df['number_of_panels_total']) * 100
+    combined_df['energy_generation_per_panel'] = combined_df['yearly_sunlight_kwh_kw_threshold_avg'] * 0.4
     combined_df['existing_installs_count_per_capita'] = (combined_df['existing_installs_count'] / combined_df['Total_Population'])
 
     avg_panel_util = np.mean(combined_df['panel_utilization'])
@@ -308,6 +311,7 @@ def make_dataset(remove_outliers=True):
 
     combined_df['carbon_offset_metric_tons_per_panel'] = (combined_df['carbon_offset_metric_tons'] / (combined_df['number_of_panels_total'] - combined_df['existing_installs_count'] ) )
     combined_df['carbon_offset_metric_tons_per_capita'] = combined_df['carbon_offset_metric_tons']/ combined_df['Total_Population']
+    combined_df['carbon_offset_kg_per_panel'] = combined_df['carbon_offset_metric_tons_per_panel'] * 1000
 
     mask = combined_df['carbon_offset_metric_tons_per_panel'] > 50/1000
     combined_df = combined_df[mask]
@@ -325,90 +329,3 @@ def make_dataset(remove_outliers=True):
     # combined_df['zips'] = zip_codes
 
     return combined_df.reset_index(drop=True)
-
-
-# Creates a projection of carbon offset if the current ratio of panel locations remain the same 
-# allowing partial placement of panels in zips and not accounting in the filling of zip codes.
-def create_continued_projection(combined_df, n=1000, metric='carbon_offset_metric_tons'):
-    total_panels = np.sum(combined_df['existing_installs_count'])
-    print("total, current existing panels:", total_panels)
-    panel_percentage = combined_df['existing_installs_count'] / total_panels
-    ratiod_carbon_offset_per_panel = np.sum(panel_percentage * combined_df[metric])
-    return np.arange(n+1) * ratiod_carbon_offset_per_panel
-
-# Greedily adds 1-> n solar panels to zips which maximize the sort_by metric until no more can be added
-# Returns the Carbon offset for each amount of panels added
-def create_greedy_projection(combined_df, n=1000, sort_by='carbon_offset_metric_tons_per_panel', ascending=False, metric='carbon_offset_metric_tons'):
-    sorted_combined_df = combined_df.sort_values(sort_by, ascending=ascending, inplace=False, ignore_index=True)
-    projection = np.zeros(n+1)
-    greedy_best_not_filled_index = 0
-    existing_count = sorted_combined_df['existing_installs_count'][greedy_best_not_filled_index]
-    i = 0
-    while (i < n):
-        if existing_count >= sorted_combined_df['count_qualified'][greedy_best_not_filled_index]:
-            greedy_best_not_filled_index += 1
-            existing_count = sorted_combined_df['existing_installs_count'][greedy_best_not_filled_index]
-
-        else:
-            projection[i+1] = projection[i] + sorted_combined_df[metric][greedy_best_not_filled_index]
-            existing_count += 1
-            i += 1
-    
-    return projection
-
-# Creates a projection which decides each placement alternating between different policies
-# TODO
-def round_robin_projection(projections, n=1000, metric='carbon_offset_metric_tons'):
-    pass
-
-# Creates a projection of the carbon offset if we place panels to normalize the panel utilization along the given "demographic"
-# I.e. if we no correlation between the demographic and the panel utilization and only fous on that, how Carbon would we offset
-# TODO
-def create_pop_demo_normalizing_projection(combined_df, n=1000, demographic="black_prop", metric='carbon_offset_metric_tons'):
-    pass
-
-# Creates a projection of carbon offset for adding solar panels to random zipcodes
-# The zipcode is randomly chosen for each panel, up to n panels
-def create_random_proj(combined_df, n=1000, metric='carbon_offset_metric_tons'):
-    projection = np.zeros(n+1)
-    picks = np.random.randint(0, len(combined_df['region_name']) -1, (n))
-    for i, pick in enumerate(picks):
-
-        while math.isnan(combined_df[metric][pick]):
-            pick = np.random.randint(0, len(combined_df[metric]))
-        projection[i+1] = projection[i] + combined_df[metric][pick]
-
-    return projection
-
-# Creates multiple different projections and returns them
-def create_projections(combined_df, n=1000, load=False, metric='carbon_offset_metric_tons'):
-
-    if load and exists("Clean_Data/projections_"+metric+".csv"):
-        return pd.read_csv("Clean_Data/projections_"+metric+".csv")
-    
-    proj = pd.DataFrame()
-    print("Creating Continued Projection")
-    proj['Continued'] = create_continued_projection(combined_df, n, metric)
-    print("Creating Greedy Carbon Offset Projection")
-    proj['Greedy Carbon Offset'] = create_greedy_projection(combined_df, n, sort_by='carbon_offset_metric_tons_per_panel', metric=metric)
-    print("Creating Greedy Average Sun Projection")
-    proj['Greedy Average Sun'] = create_greedy_projection(combined_df, n, sort_by='yearly_sunlight_kwh_kw_threshold_avg', metric=metric)
-    print("Creating Greedy Black Proportion Projection")
-    proj['Greedy Black Proportion'] = create_greedy_projection(combined_df, n, sort_by='black_prop', metric=metric)
-    print("Creating Greedy Low Median Income Projection")
-    proj['Greedy Low Median Income'] = create_greedy_projection(combined_df, n, sort_by='Median_income', ascending=True, metric=metric)
-
-
-    # uniform_samples = 10
-
-    # print("Creating uniform random projection with", uniform_samples, "samples")
-
-    # proj['Uniform Random (' + str(uniform_samples) + ' samples)' ] = np.zeros(n+1)
-    # for i in range(uniform_samples):
-    #     proj['Uniform Random (' + str(uniform_samples) + ' samples)' ] += create_random_proj(combined_df, n)/uniform_samples
-    
-
-    proj.to_csv("Clean_Data/projections_"+metric+".csv",index=False)
-
-    return proj
-

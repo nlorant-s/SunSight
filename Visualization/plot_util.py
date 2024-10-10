@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 import pgeocode
 import plotly.graph_objects as go
 from decimal import Decimal
@@ -66,8 +68,8 @@ def scatter_plot(x, y, texts=None, xlabel="", ylabel="", title=None, fit=None, l
     if color == '':
         plt.scatter(dat['x'], dat['y'], alpha=alpha, label=label, c=c, cmap=cmap,norm=matplotlib.colors.LogNorm())
         plt.colorbar()
-        plt.text(np.max(dat['x'])*1.15, (np.max(dat['y']) + np.min(dat['y'])) /2 + 400, "National Max", rotation=0, fontdict=font)
-        plt.text(np.max(dat['x'])*1.2, (np.max(dat['y']) + np.min(dat['y'])) /2 - 150, "Log Realized Potential", rotation=270, fontdict=font)
+        # plt.text(np.max(dat['x'])*1.15, (np.max(dat['y']) + np.min(dat['y'])) /2 + 400, "National Max", rotation=0, fontdict=font)
+        plt.text(np.max(dat['x'])*1.2, ((np.max(dat['y']) + np.min(dat['y'])) /2 * 0.9), "Log Realized Potential", rotation=270, fontdict=font)
     elif color is not None:
         plt.scatter(dat['x'], dat['y'], color=color, alpha=alpha, label=label)
     else:
@@ -148,12 +150,12 @@ def complex_scatter(combined_df, x, y, xlabel, ylabel, fit=[1], title=None, bins
 
     if square:
         # plt.gca().set_aspect('equal')
-        plt.locator_params(axis='x', nbins=4) 
-        plt.locator_params(axis='y', nbins=4) 
+        plt.locator_params(axis='x', nbins=5) 
+        plt.locator_params(axis='y', nbins=5) 
         plt.yticks(fontsize=fontsize/(1.5))
         plt.xticks(fontsize=fontsize/(1.5))
-        plt.xlim(-10000000, 450000000)
-        plt.ylim(-10, 250)
+        plt.xlim(0, 500000000)
+        plt.ylim(0, 250)
         # plt.subplots_adjust(top = 1, bottom = 0, right = 1, left = 0, 
         #     hspace = 0, wspace = 0)
         plt.margins(0.1,0.1)
@@ -163,7 +165,16 @@ def complex_scatter(combined_df, x, y, xlabel, ylabel, fit=[1], title=None, bins
         plt.xlabel(xlabel, fontsize=fontsize, labelpad=20)
         plt.ylabel(ylabel, fontsize=fontsize, labelpad=20)
         if legend:
-            plt.legend(fontsize=fontsize*0.75)
+            legend_elements = [Line2D([0], [0], marker='o',color='blue', lw=4, label='Low Carbon Offset'),
+                Line2D([0], [0],marker='o',  color='orange', lw=4, label='Low-Middle Carbon Offset'),
+                Line2D([0], [0],marker='o',  color='green', lw=4, label='High-Middle Carbon Offset'),
+                Line2D([0], [0],marker='o',  color='red', lw=4, label='High Carbon Offset')]
+            legend_elements = [Line2D([0], [0], marker='o', markersize=8,color='blue', lw=0, label='Carbon Offset in 0 to 25-th percentile'),
+                Line2D([0], [0],marker='o',  color='orange',markersize=8, lw=0, label='Carbon Offset in 25 to 50-th percentile'),
+                Line2D([0], [0],marker='o',  color='green',markersize=8, lw=0, label='Carbon Offset in 50 to 75-th percentile'),
+                Line2D([0], [0],marker='o',  color='red',markersize=8, lw=0, label='Carbon Offset in 75 to 100-th percentile')]
+            
+            plt.legend(handles=legend_elements, fontsize=fontsize*0.75)
         if title is None:
             plt.title(ylabel + " versus " + xlabel, fontsize=fontsize)
         else:
@@ -172,7 +183,7 @@ def complex_scatter(combined_df, x, y, xlabel, ylabel, fit=[1], title=None, bins
         plt.show()
 
 # Creates a US map plot of the dat, edf should be provided, but if it isn't then it will be created as necessary using the zipcodes provided
-def geo_plot(dat, color_scale, title, edf=None, zipcodes=None):
+def geo_plot(dat, color_scale, title, edf=None, zipcodes=None, colorbar_label="", size=20):
 
     # This should basically never get called since we define edf below, but if you were to import this you'd have to make sure zipcodes are provided to create the edf
     if edf is None:
@@ -199,14 +210,17 @@ def geo_plot(dat, color_scale, title, edf=None, zipcodes=None):
             color = clean_dat['dat'],
             colorscale = color_scale,
             reversescale = True,
-            opacity = 0.6,
-            size = 20,
+            opacity = 0.7,
+            size = size,
             colorbar = dict(
                 titleside = "right",
+                x = 0.8,
+                xpad = 200,
                 outlinecolor = "rgba(68, 68, 68, 0)",
                 ticks = "outside",
                 showticksuffix = "last",
-                dtick = dat_range/15
+                dtick = dat_range/15,
+                title=colorbar_label,
             )
             )))
 
@@ -216,7 +230,7 @@ def geo_plot(dat, color_scale, title, edf=None, zipcodes=None):
             font=dict(
             family="Courier New, monospace",
             size=36,
-            color="RebeccaPurple",
+            color="Black",
         )
         )
     fig.show()
@@ -275,7 +289,9 @@ def plot_state_map(stats_df, key, fill_color="BuPu", zoom=4.8, location=[38,-96.
         legend_name = key
 
     fl.Choropleth(geo_data=state_geo, data=stats_df,
-    columns=['State code', key],key_on='feature.id', fill_color=fill_color, line_weight=1, fill_opacity=0.7, line_opacity=.5,legend_name=legend_name).add_to(m)
+    columns=['State code', key],key_on='feature.id', fill_color=fill_color, colorbar=dict(thickness = 100,font={'family' : 'DejaVu Sans',
+    'weight' : 'bold',
+    'size'   : 20}), line_weight=1, fill_opacity=0.7, line_opacity=.5,legend_name=legend_name).add_to(m)
 
     img_data = m._to_png(5)
     img = Image.open(io.BytesIO(img_data))
@@ -284,10 +300,10 @@ def plot_state_map(stats_df, key, fill_color="BuPu", zoom=4.8, location=[38,-96.
 
     # m.show_in_browser()
 
-def bar_plot_demo_split(df, demos, key, type="avg value", stacked=False, xticks=None, title=None, ylabel=None, annotate=True):
+def bar_plot_demo_split(df, demos, key, type="avg value", stacked=False, xticks=None, title=None, ylabel=None, annotate=True, hatches=None, legend=True):
     true_avg = np.mean(df[key].values)
 
-    plt.style.use('seaborn-whitegrid')
+    plt.style.use('seaborn-colorblind')
 
     font = {'family' : 'DejaVu Sans',
     'weight' : 'bold',
@@ -305,37 +321,64 @@ def bar_plot_demo_split(df, demos, key, type="avg value", stacked=False, xticks=
         high_avg = np.mean(df[df[demo] >= median][key].values)
 
         if type == "percent":
-            low_avg = (low_avg/true_avg) - 1
-            high_avg = (high_avg/true_avg) -1
+            low_avg = ((low_avg/true_avg) - 1) * 100
+            high_avg = ((high_avg/true_avg) -1) * 100
         if type == "diff":
             low_avg = true_avg - low_avg
             high_avg = true_avg - high_avg
+        if type == 'paper':
+            low_avg /= true_avg
+            high_avg /= true_avg
 
         low_avgs.append(low_avg)
         high_avgs.append(high_avg)
-    
+       
     new_df['demographic'] = demos
     new_df['Below median'] = low_avgs
     new_df['Above median'] = high_avgs
 
 
-    ax = new_df.set_index('demographic').plot(kind='bar', stacked=stacked)
+    print(new_df)
+    ax = new_df.set_index('demographic').plot(kind='bar', stacked=stacked, width=0.8)
+
+    if hatches is not None:
+        bars = ax.patches
+
+        for bar, hatch in zip(bars, hatches):
+            bar.set_hatch(hatch)
+    
+
+    ymin, ymax = ax.get_ylim()
+
+    if type == "paper":
+        plt.ylim(ymin, ymax*1.2)
+        ymax *= 1.2
+
+    plt.vlines((ax.patches[0].get_width() * (50/8)), ymin/2, ymax/2, colors=['grey'], linestyles='dotted', linewidth=3)
+    plt.vlines((ax.patches[0].get_width() * (70/8)), ymin/2, ymax/2, colors=['grey'], linestyles='dotted', linewidth=3)
 
     if annotate:
         for p in ax.patches:
-            ax.annotate(str(np.round(p.get_height(), 3)), (p.get_x() + p.get_width()/7 - ((p.get_height() < 0) * 0.01) , p.get_height() / 2 ))
+            ax.annotate(str(np.round(p.get_height(), 1)), (p.get_x() + p.get_width()/7 - ((p.get_height() < 0) * 0.01) , p.get_height() / 2 ))
 
     if type == "percent":
         true_avg = 0
     if type == "diff":
         true_avg = 0
+    if type == 'paper':
+        true_avg = 1
 
-    plt.tight_layout()
+    # plt.tight_layout(pad=1.08)
     plt.axhline(y=true_avg, color='k', linestyle='--', label="National Average",linewidth=5)
     plt.xlabel("")
     plt.yticks(fontsize=30)
     plt.xticks(fontsize=30)
-    plt.legend([])
+    if legend:
+        plt.legend(ncol=3, fontsize=26)
+    else:
+        ax.legend(handles=[], labels= [])
+        plt.legend([])
+
     if title is not None:
         plt.title(title)
     else:
@@ -343,7 +386,7 @@ def bar_plot_demo_split(df, demos, key, type="avg value", stacked=False, xticks=
     if ylabel is not None:
         plt.ylabel(ylabel, labelpad=20, fontdict={'family' : 'DejaVu Sans',
     'weight' : 'bold',
-    'size'   : 35})
+    'size'   : 25})
     else:
         plt.ylabel(key)
     if xticks is not None:
