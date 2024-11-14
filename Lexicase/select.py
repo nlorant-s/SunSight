@@ -7,5 +7,8 @@ solar_file_path = Path("Visualization") / "Clean_Data" / "solar_zip_usable.csv"
 
 fitness_array, rankings_df = calculate_fitness(census_file_path, solar_file_path)
 
-select = lexicase_selection(fitness_array, epsilon=True, elitism=False)
+select = lexicase_selection(fitness_array, epsilon=False, elitism=False, num_to_select=50)
 
+print(fitness_array)
+
+print(select)

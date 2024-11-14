@@ -12,12 +12,12 @@ From solar_zip_usable.csv:
 - Geographic Equity = percent_covered
 
 Fitness scores are determined by the ranking of each zip code in each category.
-the returned array will be n x 5, where n is the number of zip codes.
+the returned array will be of shape (n, 5) where n is the number of zip codes.
 '''
 
 def calculate_fitness(census_file_path, solar_file_path):
     """
-    Calculate fitness scores for zip codes based on multiple equity and environmental metrics.
+    Calculate fitness scores for zip codes based on 5 metrics.
     
     Parameters:
     census_file_path (str): Path to census_zip_usable.csv
@@ -39,7 +39,7 @@ def calculate_fitness(census_file_path, solar_file_path):
     merged_df = pd.merge(census_df, solar_df, on='zip_code', how='inner')
     
     # Calculate Racial Equity
-    merged_df['racial_equity'] = merged_df['white_population'] / (
+    merged_df['racial_equity'] = merged_df['white_population']  / (
         merged_df['black_population'] + 
         merged_df['white_population'] + 
         merged_df['asian_population'] + 
@@ -61,7 +61,7 @@ def calculate_fitness(census_file_path, solar_file_path):
     
     for metric_name, column_name in metrics.items():
         # Rank values (smaller rank = better score)
-        rankings[metric_name] = merged_df[column_name].rank(method='min')
+        rankings[metric_name] = merged_df[column_name].rank(method='average')
         
         # Normalize rankings to [0, 1] range
         rankings[metric_name] = (rankings[metric_name] - 1) / (len(rankings) - 1)
