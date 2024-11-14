@@ -2,13 +2,11 @@ from fitness import calculate_fitness
 from lexicase import lexicase_selection
 from pathlib import Path
 
-census_file_path = Path("Visualization") / "Clean_Data" / "census_zip_usable.csv"
-solar_file_path = Path("Visualization") / "Clean_Data" / "solar_zip_usable.csv"
+filepath = Path("Visualization") / "Clean_Data" / "data_by_zip.csv"
 
-fitness_array, rankings_df = calculate_fitness(census_file_path, solar_file_path)
+fitness_array, rankings_df = calculate_fitness(filepath)
 
-select = lexicase_selection(fitness_array, epsilon=False, elitism=False, num_to_select=50)
-
-print(fitness_array)
+# Select the best third of zip codes based on fitness scores
+select = lexicase_selection(fitness_array, epsilon=False, elitism=False, num_to_select=len(fitness_array)//3)
 
 print(select)
