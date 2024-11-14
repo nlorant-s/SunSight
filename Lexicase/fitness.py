@@ -3,7 +3,7 @@ import numpy as np
 
 '''
 OBJECTIVES:
-- Racial Equity = 1 - (white_population/(black_population + white_population + asian_population + native_population))
+- Racial Equity = (white_population/(black_population + white_population + asian_population + native_population))
 - Income Equity = per_capita_income
 - Energy Generation = yearly_sunlight_kwh_kw_threshold_avg
 - Carbon Offset = carbon_offset_metric_tons
