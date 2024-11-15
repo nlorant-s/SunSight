@@ -35,7 +35,6 @@ def calculate_fitness(file):
         df['native_population']
     )
     
-    # Create dictionary of metrics and their corresponding columns
     metrics = {
         'racial_equity': 'racial_equity',
         'income_equity': 'per_capita_income',
